@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuroGuard Phase 100+ Pro</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --bg-light: #f5f7fa;
+  --bg-dark: #1f2937;
+  --text-light: #333;
+  --text-dark: #f5f7fa;
+  --accent: #4f46e5;
+}
+body { font-family:'Segoe UI',sans-serif; margin:0; padding:0 20px; max-width: 900px; margin: 20px auto; transition: background 0.5s, color 0.5s;}
+h1,h2,h3 { text-align:center; color: var(--accent);}
+form, .card { background: #fff; padding: 20px; border-radius: 12px; margin-bottom:20px; box-shadow:0 4px 15px rgba(0,0,0,0.1);}
+input, select, textarea { width:100%; padding:10px; margin:8px 0; border-radius:6px; border:1px solid #ccc;}
+button { padding:12px 20px; background: var(--accent); color:#fff; border:none; cursor:pointer; border-radius:8px; font-size:16px;}
+button:hover { background:#4338ca;}
+#scoreOutput { text-align:center; font-size:22px; margin:20px 0; font-weight:bold;}
+.recommendation { font-weight:bold; color:#065f46; font-size:18px; margin-top:10px;}
+.dark-mode { background: var(--bg-dark); color: var(--text-dark);}
+.dark-mode form, .dark-mode .card { background:#374151;}
+.chart-container { position: relative; height: 300px; margin-bottom:30px;}
+.toggle-btn { position:fixed; top:20px; right:20px; padding:10px 15px; border-radius:8px; background:var(--accent); color:white; cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="toggle-btn" id="themeToggle">Toggle Dark/Light</div>
+<h1>NeuroGuard Phase 100+ Pro</h1>
+<h2>Ultimate Cognitive Tracking, Analytics & AI Insights</h2>
+
+<form id="cognitiveForm">
+<h3>Daily Inputs</h3>
+<label>Sleep Duration (hours):</label>
+<input type="number" id="sleep" min="0" max="24" required>
+
+<label>Sleep Quality (1-10):</label>
+<input type="number" id="sleepQuality" min="1" max="10" required>
+
+<label>Stress Level (1-10):</label>
+<input type="number" id="stress" min="1" max="10" required>
+
+<label>Physical Activity (minutes):</label>
+<input type="number" id="activity" min="0" max="300" required>
+
+<label>Diet Quality (1-10):</label>
+<input type="number" id="diet" min="1" max="10" required>
+
+<label>Medications Taken (comma-separated, optional):</label>
+<input type="text" id="meds">
+
+<button type="submit">Submit & Get Score</button>
+</form>
+
+<div id="scoreOutput">Your cognitive score will appear here.</div>
+
+<div class="card">
+<h3>AI-Generated Recommendations</h3>
+<div class="recommendation" id="recommendationOutput">Fill your data to receive personalized advice.</div>
+</div>
+
+<div class="card chart-container">
+<h3>Score Trends</h3>
+<canvas id="trendChart"></canvas>
+</div>
+
+<div class="card chart-container">
+<h3>Sleep vs Stress vs Activity</h3>
+<canvas id="multiChart"></canvas>
+</div>
+
+<div class="card">
+<button id="downloadPDF">Download PDF Report</button>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyD46r68uu1HtgbvHydIBhFxAcQOCNTtWNM",
+  authDomain: "neuroguard-ba100.firebaseapp.com",
+  databaseURL: "https://neuroguard-ba100-default-rtdb.firebaseio.com",
+  projectId: "neuroguard-ba100",
+  storageBucket: "neuroguard-ba100.appspot.com",
+  messagingSenderId: "665637579760",
+  appId: "1:665637579760:web:e452a55d2836474ac54b35",
+  measurementId: "G-EJ05T3717P"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+let trendChart, multiChart;
+let currentData = {};
+
+function calculateScore(data){
+    let score = 0;
+    score += data.sleep * 5;
+    score += data.sleepQuality * 4;
+    score -= data.stress * 3;
+    score += data.activity * 0.2;
+    score += data.diet * 4;
+    score = Math.max(0, Math.min(100, score));
+    return Math.round(score);
+}
+
+function generateRecommendation(score, sleep, stress, activity, diet){
+    let rec = [];
+    if(sleep < 7) rec.push("Increase sleep to at least 7 hours.");
+    if(stress > 6) rec.push("Practice meditation or deep breathing.");
+    if(activity < 30) rec.push("Add 30+ mins of physical activity.");
+    if(diet < 6) rec.push("Improve diet: more fruits, veggies, protein.");
+    if(score > 85) rec.push("Excellent cognitive health today! Keep it up!");
+    return rec.join(" ");
+}
+
+function updateCharts(records){
+    const labels = records.map(r => new Date(r.timestamp).toLocaleDateString());
+    const scores = records.map(r => r.cognitiveScore);
+    const sleepArr = records.map(r => r.sleep);
+    const stressArr = records.map(r => r.stress);
+    const activityArr = records.map(r => r.activity);
+
+    if(trendChart) trendChart.destroy();
+    trendChart = new Chart(document.getElementById('trendChart'), {
+        type:'line',
+        data:{labels,datasets:[{label:'Cognitive Score', data:scores, borderColor:'#4f46e5', backgroundColor:'#c7d2fe', fill:true, tension:0.3}]},
+        options:{responsive:true, plugins:{legend:{display:true}}}
+    });
+
+    if(multiChart) multiChart.destroy();
+    multiChart = new Chart(document.getElementById('multiChart'), {
+        type:'bar',
+        data:{labels,datasets:[
+            {label:'Sleep', data:sleepArr, backgroundColor:'#60a5fa'},
+            {label:'Stress', data:stressArr, backgroundColor:'#f87171'},
+            {label:'Activity', data:activityArr, backgroundColor:'#34d399'}
+        ]},
+        options:{responsive:true, plugins:{legend:{display:true}}}
+    });
+}
+
+document.getElementById('cognitiveForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    currentData = {
+        timestamp: new Date().toISOString(),
+        sleep: Number(document.getElementById('sleep').value),
+        sleepQuality: Number(document.getElementById('sleepQuality').value),
+        stress: Number(document.getElementById('stress').value),
+        activity: Number(document.getElementById('activity').value),
+        diet: Number(document.getElementById('diet').value),
+        meds: document.getElementById('meds').value
+    };
+    const score = calculateScore(currentData);
+    document.getElementById('scoreOutput').innerText = "Cognitive Score: " + score;
+
+    const rec = generateRecommendation(score, currentData.sleep, currentData.stress, currentData.activity, currentData.diet);
+    document.getElementById('recommendationOutput').innerText = rec;
+
+    const newRef = db.ref('phase100plus_data').push();
+    newRef.set({...currentData, cognitiveScore: score}).then(()=>{
+        db.ref('phase100plus_data').once('value', snapshot=>{
+            const records = snapshot.val() ? Object.values(snapshot.val()) : [];
+            updateCharts(records);
+        });
+    });
+});
+
+document.getElementById('downloadPDF').addEventListener('click', () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("NeuroGuard Phase 100+ Pro Report", 20, 20);
+    doc.setFontSize(12);
+    doc.text(`Date: ${new Date().toLocaleString()}`, 20, 30);
+    doc.text(`Sleep: ${currentData.sleep} hrs`, 20, 40);
+    doc.text(`Sleep Quality: ${currentData.sleepQuality}`, 20, 50);
+    doc.text(`Stress Level: ${currentData.stress}`, 20, 60);
+    doc.text(`Physical Activity: ${currentData.activity} mins`, 20, 70);
+    doc.text(`Diet Quality: ${currentData.diet}`, 20, 80);
+    doc.text(`Medications: ${currentData.meds || 'None'}`, 20, 90);
+    const score = calculateScore(currentData);
+    doc.text(`Cognitive Score: ${score}`, 20, 100);
+    const rec = generateRecommendation(score, currentData.sleep, currentData.stress, currentData.activity, currentData.diet);
+    doc.text(`Recommendations: ${rec}`, 20, 110);
+    doc.save('NeuroGuard_Report.pdf');
+});
+
+// Dark/Light mode toggle
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+    document.body.classList.toggle('dark-mode');
+});
+</script>
+</body>
+</html>
