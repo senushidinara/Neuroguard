@@ -1,0 +1,17 @@
+{
+  "name": "neuroguard-cognitive-score",
+  "version": "1.0.0",
+  "description": "NeuroGuard Cognitive Dashboard - A health tracking application",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx http-server . -p 3000 -c-1",
+    "start": "npx http-server . -p 3000 -c-1",
+    "build": "echo 'Static HTML project - no build needed'"
+  },
+  "keywords": ["health", "cognitive", "dashboard", "firebase"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

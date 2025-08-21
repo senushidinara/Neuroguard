@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeuroGuard Cognitive Score</title>
+<title>NeuroGuard Cognitive Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <script type="module">
-  // Firebase SDK
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-  import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+  import { getDatabase, ref, push, set, get, onValue } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyD46r68uu1HtgbvHydIBhFxAcQOCNTtWNM",
@@ -21,110 +22,1538 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-
-  export { db };
+  window.firebaseDB = db;
 </script>
 <style>
-body { font-family: 'Poppins', sans-serif; background: linear-gradient(120deg, #89f7fe, #66a6ff); margin: 0; padding: 0; }
-.container { max-width: 700px; margin: 50px auto; background: #fff; border-radius: 15px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);}
-h1 { text-align: center; color: #333; }
-input, select, textarea { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; }
-button { background: #4CAF50; color: white; padding: 15px 20px; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; }
-button:hover { background: #45a049; }
-#scoreOutput { text-align: center; font-size: 24px; font-weight: bold; margin-top: 20px; }
-.chart-container { width: 100%; height: 300px; margin-top: 30px; }
+:root {
+  --primary-color: #6366f1;
+  --secondary-color: #8b5cf6;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --radius: 12px;
+  --radius-lg: 16px;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border-color: #475569;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: var(--text-primary);
+  min-height: 100vh;
+  transition: all 0.3s ease;
+}
+
+.main-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 20px;
+  min-height: 100vh;
+}
+
+.dashboard-panel {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  padding: 30px;
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-panel {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  padding: 30px;
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+}
+
+.dashboard-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.theme-toggle {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-secondary);
+}
+
+.theme-toggle:hover {
+  background: var(--bg-tertiary);
+}
+
+.input-section {
+  display: grid;
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-label {
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-label i {
+  color: var(--primary-color);
+  width: 16px;
+}
+
+.slider-container {
+  position: relative;
+  margin: 10px 0;
+}
+
+.slider-input {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--bg-secondary);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.slider-input::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  cursor: pointer;
+  border: 3px solid var(--bg-primary);
+  box-shadow: var(--shadow);
+}
+
+.slider-input::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  cursor: pointer;
+  border: 3px solid var(--bg-primary);
+  box-shadow: var(--shadow);
+}
+
+.slider-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.slider-value {
+  font-weight: 600;
+  color: var(--primary-color);
+  background: var(--bg-secondary);
+  padding: 4px 8px;
+  border-radius: 6px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.slider-range {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.medication-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.medication-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.submit-button {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  border: none;
+  padding: 16px 24px;
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.submit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.submit-button:active {
+  transform: translateY(0);
+}
+
+.submit-button.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.score-display {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.main-score {
+  font-size: 48px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+}
+
+.score-label {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.subdomain-scores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.subdomain-item {
+  background: var(--bg-secondary);
+  padding: 15px;
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.subdomain-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.subdomain-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 5px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 5px 0;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  border-radius: 4px;
+  transition: width 0.8s ease;
+  width: 0%;
+}
+
+.recommendations {
+  background: var(--bg-secondary);
+  padding: 20px;
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+}
+
+.recommendations h3 {
+  color: var(--text-primary);
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recommendation-item {
+  background: var(--bg-primary);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border-left: 4px solid var(--primary-color);
+}
+
+.recommendation-item:last-child {
+  margin-bottom: 0;
+}
+
+.chart-container {
+  background: var(--bg-secondary);
+  padding: 20px;
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  height: 300px;
+}
+
+.chart-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.chart-tab {
+  padding: 8px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.chart-tab.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.gamification {
+  background: var(--bg-secondary);
+  padding: 20px;
+  border-radius: var(--radius);
+}
+
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.badge-item {
+  background: var(--bg-primary);
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.badge-item.earned {
+  border-color: var(--success-color);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.badge-icon {
+  font-size: 20px;
+  margin-bottom: 5px;
+}
+
+.badge-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.alert-banner {
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.alert-critical {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger-color);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.alert-warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning-color);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.alert-success {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success-color);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-item {
+  background: var(--bg-secondary);
+  padding: 15px;
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 5px;
+}
+
+.export-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.export-button {
+  padding: 8px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.export-button:hover {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+@media (max-width: 1024px) {
+  .main-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .sidebar-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-container {
+    padding: 10px;
+  }
+  
+  .dashboard-panel,
+  .sidebar-panel {
+    padding: 20px;
+  }
+  
+  .subdomain-scores {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tooltip {
+  position: relative;
+  cursor: help;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+}
+
+.tooltip:hover::after {
+  opacity: 1;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.bounce {
+  animation: bounce 0.6s ease;
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% { transform: translate3d(0, 0, 0); }
+  40%, 43% { transform: translate3d(0, -10px, 0); }
+  70% { transform: translate3d(0, -5px, 0); }
+  90% { transform: translate3d(0, -2px, 0); }
+}
 </style>
 </head>
 <body>
 
-<div class="container">
-<h1>NeuroGuard Cognitive Dashboard</h1>
-<form id="cognitiveForm">
-<label>Sleep Duration (hours):</label>
-<input type="number" id="sleep" min="0" max="24" required>
+<div class="main-container">
+  <div class="dashboard-panel">
+    <div class="header">
+      <div class="logo-section">
+        <div class="logo-icon">
+          <i class="fas fa-brain"></i>
+        </div>
+        <h1 class="dashboard-title">NeuroGuard Dashboard</h1>
+      </div>
+      <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon"></i>
+      </button>
+    </div>
 
-<label>Sleep Quality (1-10):</label>
-<input type="number" id="sleepQuality" min="1" max="10" required>
+    <div id="alertBanner"></div>
 
-<label>Stress Level (1-10):</label>
-<input type="number" id="stress" min="1" max="10" required>
+    <form id="cognitiveForm" class="input-section">
+      <div class="input-group">
+        <label class="input-label tooltip" data-tooltip="Adequate sleep (7-9 hours) is crucial for memory consolidation and cognitive function">
+          <i class="fas fa-bed"></i>
+          Sleep Duration (hours)
+        </label>
+        <div class="slider-container">
+          <input type="range" id="sleep" class="slider-input" min="0" max="12" value="8" step="0.5">
+          <div class="slider-display">
+            <span class="slider-range">0h</span>
+            <span class="slider-value" id="sleepValue">8.0h</span>
+            <span class="slider-range">12h</span>
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="sleepProgress"></div>
+        </div>
+      </div>
 
-<label>Physical Activity (minutes/day):</label>
-<input type="number" id="activity" min="0" max="300" required>
+      <div class="input-group">
+        <label class="input-label tooltip" data-tooltip="Sleep quality affects memory consolidation and next-day cognitive performance">
+          <i class="fas fa-star"></i>
+          Sleep Quality
+        </label>
+        <div class="slider-container">
+          <input type="range" id="sleepQuality" class="slider-input" min="1" max="10" value="7">
+          <div class="slider-display">
+            <span class="slider-range">Poor</span>
+            <span class="slider-value" id="sleepQualityValue">7</span>
+            <span class="slider-range">Excellent</span>
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="sleepQualityProgress"></div>
+        </div>
+      </div>
 
-<label>Diet Quality (1-10):</label>
-<input type="number" id="diet" min="1" max="10" required>
+      <div class="input-group">
+        <label class="input-label tooltip" data-tooltip="Chronic stress releases cortisol, which can impair memory and decision-making">
+          <i class="fas fa-heartbeat"></i>
+          Stress Level
+        </label>
+        <div class="slider-container">
+          <input type="range" id="stress" class="slider-input" min="1" max="10" value="5">
+          <div class="slider-display">
+            <span class="slider-range">Low</span>
+            <span class="slider-value" id="stressValue">5</span>
+            <span class="slider-range">High</span>
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="stressProgress"></div>
+        </div>
+      </div>
 
-<label>Meditation / Mindfulness (minutes/day):</label>
-<input type="number" id="meditation" min="0" max="120" required>
+      <div class="input-group">
+        <label class="input-label tooltip" data-tooltip="Regular exercise increases BDNF, promoting neuroplasticity and cognitive health">
+          <i class="fas fa-running"></i>
+          Physical Activity (minutes/day)
+        </label>
+        <div class="slider-container">
+          <input type="range" id="activity" class="slider-input" min="0" max="180" value="30">
+          <div class="slider-display">
+            <span class="slider-range">0min</span>
+            <span class="slider-value" id="activityValue">30min</span>
+            <span class="slider-range">180min</span>
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="activityProgress"></div>
+        </div>
+      </div>
 
-<label>Medication Taken (comma-separated, optional):</label>
-<input type="text" id="meds">
+      <div class="input-group">
+        <label class="input-label tooltip" data-tooltip="Omega-3s, antioxidants, and balanced nutrition support brain health and cognitive function">
+          <i class="fas fa-apple-alt"></i>
+          Diet Quality
+        </label>
+        <div class="slider-container">
+          <input type="range" id="diet" class="slider-input" min="1" max="10" value="7">
+          <div class="slider-display">
+            <span class="slider-range">Poor</span>
+            <span class="slider-value" id="dietValue">7</span>
+            <span class="slider-range">Excellent</span>
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="dietProgress"></div>
+        </div>
+      </div>
 
-<button type="submit">Submit & Get Score</button>
-</form>
+      <div class="input-group">
+        <label class="input-label tooltip" data-tooltip="Mindfulness practices reduce stress and improve attention and working memory">
+          <i class="fas fa-leaf"></i>
+          Meditation/Mindfulness (minutes/day)
+        </label>
+        <div class="slider-container">
+          <input type="range" id="meditation" class="slider-input" min="0" max="120" value="10">
+          <div class="slider-display">
+            <span class="slider-range">0min</span>
+            <span class="slider-value" id="meditationValue">10min</span>
+            <span class="slider-range">120min</span>
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="meditationProgress"></div>
+        </div>
+      </div>
 
-<h2 id="scoreOutput"></h2>
-<div class="chart-container">
-<canvas id="scoreChart"></canvas>
+      <div class="input-group">
+        <label class="input-label tooltip" data-tooltip="Some medications can affect cognitive function - consult your healthcare provider">
+          <i class="fas fa-pills"></i>
+          Current Medications (optional)
+        </label>
+        <input type="text" id="meds" class="medication-input" placeholder="e.g., Vitamin D, Omega-3, Modafinil">
+      </div>
+
+      <button type="submit" class="submit-button">
+        <i class="fas fa-calculator"></i>
+        <span>Calculate Cognitive Score</span>
+      </button>
+    </form>
+
+    <div class="chart-container">
+      <div class="chart-tabs">
+        <button class="chart-tab active" onclick="switchChart('trend', this)">Trend</button>
+        <button class="chart-tab" onclick="switchChart('correlation', this)">Correlation</button>
+        <button class="chart-tab" onclick="switchChart('radar', this)">Radar</button>
+      </div>
+      <canvas id="mainChart"></canvas>
+    </div>
+  </div>
+
+  <div class="sidebar-panel">
+    <div class="score-display">
+      <div class="main-score" id="mainScore">--</div>
+      <div class="score-label">Cognitive Score</div>
+    </div>
+
+    <div class="subdomain-scores">
+      <div class="subdomain-item">
+        <div class="subdomain-value" id="memoryScore">--</div>
+        <div class="subdomain-label">Memory</div>
+      </div>
+      <div class="subdomain-item">
+        <div class="subdomain-value" id="focusScore">--</div>
+        <div class="subdomain-label">Focus</div>
+      </div>
+      <div class="subdomain-item">
+        <div class="subdomain-value" id="stressScore">--</div>
+        <div class="subdomain-label">Resilience</div>
+      </div>
+      <div class="subdomain-item">
+        <div class="subdomain-value" id="sleepScore">--</div>
+        <div class="subdomain-label">Sleep Quality</div>
+      </div>
+    </div>
+
+    <div class="recommendations">
+      <h3><i class="fas fa-lightbulb"></i> AI Recommendations</h3>
+      <div id="recommendationsList">
+        <div class="recommendation-item">Complete your assessment to receive personalized recommendations.</div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-value" id="avgScore">--</div>
+        <div class="stat-label">30-Day Average</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="bestScore">--</div>
+        <div class="stat-label">Best Score</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="streak">--</div>
+        <div class="stat-label">Day Streak</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="totalEntries">--</div>
+        <div class="stat-label">Total Entries</div>
+      </div>
+    </div>
+
+    <div class="gamification">
+      <h3><i class="fas fa-trophy"></i> Achievements</h3>
+      <div class="badges-grid" id="badgesGrid">
+        <!-- Badges will be populated by JavaScript -->
+      </div>
+    </div>
+
+    <div class="export-buttons">
+      <button class="export-button" onclick="exportData('csv')">
+        <i class="fas fa-download"></i> Export CSV
+      </button>
+      <button class="export-button" onclick="exportData('pdf')">
+        <i class="fas fa-file-pdf"></i> Export PDF
+      </button>
+    </div>
+  </div>
 </div>
-</div>
-
-<script type="module">
-import { db } from './index.html';
-import { ref, push, set } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
-
-const ctx = document.getElementById('scoreChart').getContext('2d');
-let scoreHistory = [];
-
-function calculateScore(data){
-  // Weighted formula for advanced scoring
-  let score = 0;
-  score += data.sleep*6 + data.sleepQuality*5 + data.activity*0.3 + data.diet*4 + data.meditation*2 - data.stress*4;
-  score = Math.max(0, Math.min(100, score));
-  return Math.round(score);
-}
-
-function updateChart(score){
-  scoreHistory.push(score);
-  if(scoreHistory.length > 10) scoreHistory.shift(); // keep last 10 scores
-  const chartData = {
-    labels: scoreHistory.map((_,i)=> i+1),
-    datasets: [{
-      label: 'Cognitive Score',
-      data: scoreHistory,
-      borderColor: '#4CAF50',
-      backgroundColor: 'rgba(76, 175, 80,0.2)',
-      fill: true,
-      tension: 0.4
-    }]
-  };
-  if(window.myChart) window.myChart.destroy();
-  window.myChart = new Chart(ctx, { type: 'line', data: chartData, options: { responsive: true, animation:{duration:500} } });
-}
-
-document.getElementById('cognitiveForm').addEventListener('submit', function(e){
-  e.preventDefault();
-  const data = {
-    timestamp: new Date().toISOString(),
-    sleep: Number(document.getElementById('sleep').value),
-    sleepQuality: Number(document.getElementById('sleepQuality').value),
-    stress: Number(document.getElementById('stress').value),
-    activity: Number(document.getElementById('activity').value),
-    diet: Number(document.getElementById('diet').value),
-    meditation: Number(document.getElementById('meditation').value),
-    meds: document.getElementById('meds').value
-  };
-  const score = calculateScore(data);
-  document.getElementById('scoreOutput').innerText = "Your Cognitive Score: " + score;
-  updateChart(score);
-
-  // Save to Firebase
-  const newRef = ref(db, 'cognitive_data');
-  push(newRef, {...data, cognitiveScore: score});
-});
-</script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script type="module">
+import { ref, push, get, set, onValue } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+// Global variables
+let currentChart = null;
+let currentChartType = 'trend';
+let scoreHistory = [];
+let userData = {
+  totalEntries: 0,
+  bestScore: 0,
+  streak: 0,
+  badges: [],
+  avgScore: 0
+};
+
+// Initialize app
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    initializeSliders();
+    initializeBadges();
+
+    // Check Firebase connectivity before loading data
+    if (window.firebaseDB) {
+      loadUserData();
+    } else {
+      console.warn('Firebase not initialized, running in offline mode');
+      updateStatsDisplay(); // Show default values
+    }
+
+    setupEventListeners();
+  } catch (error) {
+    console.error('Error during app initialization:', error);
+    alert('App initialization failed. Some features may not work properly.');
+  }
+});
+
+// Slider initialization and event handling
+function initializeSliders() {
+  const sliders = ['sleep', 'sleepQuality', 'stress', 'activity', 'diet', 'meditation'];
+  
+  sliders.forEach(sliderId => {
+    const slider = document.getElementById(sliderId);
+    const valueDisplay = document.getElementById(sliderId + 'Value');
+    const progressBar = document.getElementById(sliderId + 'Progress');
+    
+    function updateSlider() {
+      const value = parseFloat(slider.value);
+      const max = parseFloat(slider.max);
+      const min = parseFloat(slider.min);
+      const percentage = ((value - min) / (max - min)) * 100;
+      
+      // Update display value
+      if (sliderId === 'sleep') {
+        valueDisplay.textContent = value.toFixed(1) + 'h';
+      } else if (sliderId === 'activity' || sliderId === 'meditation') {
+        valueDisplay.textContent = value + 'min';
+      } else {
+        valueDisplay.textContent = value;
+      }
+      
+      // Update progress bar
+      progressBar.style.width = percentage + '%';
+      
+      // Color coding for stress (reverse logic)
+      if (sliderId === 'stress') {
+        const stressLevel = (10 - value) / 9 * 100;
+        progressBar.style.width = stressLevel + '%';
+      }
+    }
+    
+    slider.addEventListener('input', updateSlider);
+    updateSlider(); // Initialize
+  });
+}
+
+// Enhanced scoring algorithm with subdomain calculations
+function calculateScores(data) {
+  // Subdomain calculations
+  const memoryScore = Math.round(
+    (data.sleep * 8 + data.sleepQuality * 6 + data.diet * 4 + data.meditation * 2 - data.stress * 3) / 2.3
+  );
+  
+  const focusScore = Math.round(
+    (data.sleepQuality * 7 + data.activity * 0.4 + data.diet * 5 + data.meditation * 3 - data.stress * 4) / 1.54
+  );
+  
+  const stressScore = Math.round(
+    (data.meditation * 4 + data.activity * 0.3 + (10 - data.stress) * 8 + data.sleepQuality * 3) / 1.53
+  );
+  
+  const sleepScore = Math.round(
+    (data.sleep * 6 + data.sleepQuality * 8 + data.meditation * 2 - data.stress * 2) / 1.4
+  );
+  
+  // Overall cognitive score (weighted average)
+  const overallScore = Math.round(
+    (memoryScore * 0.3 + focusScore * 0.25 + stressScore * 0.25 + sleepScore * 0.2)
+  );
+  
+  return {
+    overall: Math.max(0, Math.min(100, overallScore)),
+    memory: Math.max(0, Math.min(100, memoryScore)),
+    focus: Math.max(0, Math.min(100, focusScore)),
+    stressResilience: Math.max(0, Math.min(100, stressScore)),
+    sleepQuality: Math.max(0, Math.min(100, sleepScore))
+  };
+}
+
+// AI-powered recommendations
+function generateRecommendations(data, scores) {
+  const recommendations = [];
+  
+  if (data.sleep < 7) {
+    recommendations.push("🛌 Aim for 7-9 hours of sleep. Consider a consistent bedtime routine to improve sleep duration.");
+  }
+  
+  if (data.sleepQuality < 6) {
+    recommendations.push("💤 Improve sleep environment: dark room, cool temperature (65-68°F), and no screens 1 hour before bed.");
+  }
+  
+  if (data.stress > 7) {
+    recommendations.push("🧘 High stress detected. Try 10-minute daily meditation or deep breathing exercises.");
+  }
+  
+  if (data.activity < 30) {
+    recommendations.push("🏃 Increase physical activity to at least 30 minutes daily. Even a brisk walk can boost cognitive function.");
+  }
+  
+  if (data.diet < 6) {
+    recommendations.push("🥗 Focus on brain-healthy foods: omega-3 rich fish, berries, nuts, and leafy greens.");
+  }
+  
+  if (data.meditation < 10 && data.stress > 5) {
+    recommendations.push("🌱 Start with 5-10 minutes of mindfulness daily. Apps like Headspace or Calm can help.");
+  }
+  
+  // Advanced recommendations based on patterns
+  if (scores.memory < 70) {
+    recommendations.push("🧠 Memory boost: Try the 20-20-20 rule (every 20 min, look at something 20 feet away for 20 seconds).");
+  }
+  
+  if (scores.focus < 70) {
+    recommendations.push("🎯 Focus enhancement: Consider time-blocking and eliminating distractions during work periods.");
+  }
+  
+  if (recommendations.length === 0) {
+    recommendations.push("🌟 Excellent habits! Maintain this routine for optimal cognitive health.");
+  }
+  
+  return recommendations;
+}
+
+// Generate alerts based on critical thresholds
+function generateAlerts(data, scores) {
+  if (data.stress >= 8 && data.sleep < 6) {
+    return {
+      type: 'critical',
+      message: '⚠️ Critical: High stress + insufficient sleep detected. Consider immediate stress management.'
+    };
+  }
+  
+  if (scores.overall < 50) {
+    return {
+      type: 'warning',
+      message: '⚡ Warning: Low cognitive score. Review your lifestyle factors for improvement opportunities.'
+    };
+  }
+  
+  if (scores.overall >= 80) {
+    return {
+      type: 'success',
+      message: '🎉 Excellent cognitive health! Keep up the great work!'
+    };
+  }
+  
+  return null;
+}
+
+// Update displays with animation
+function updateScoreDisplays(scores) {
+  // Animate main score
+  const mainScoreEl = document.getElementById('mainScore');
+  mainScoreEl.classList.add('bounce');
+  setTimeout(() => {
+    mainScoreEl.textContent = scores.overall;
+    mainScoreEl.classList.remove('bounce');
+  }, 100);
+  
+  // Update subdomain scores
+  document.getElementById('memoryScore').textContent = scores.memory;
+  document.getElementById('focusScore').textContent = scores.focus;
+  document.getElementById('stressScore').textContent = scores.stressResilience;
+  document.getElementById('sleepScore').textContent = scores.sleepQuality;
+}
+
+// Update recommendations display
+function updateRecommendations(recommendations) {
+  const container = document.getElementById('recommendationsList');
+  container.innerHTML = '';
+  
+  recommendations.forEach(rec => {
+    const item = document.createElement('div');
+    item.className = 'recommendation-item fade-in';
+    item.textContent = rec;
+    container.appendChild(item);
+  });
+}
+
+// Show alert banner
+function showAlert(alert) {
+  const banner = document.getElementById('alertBanner');
+  if (alert) {
+    banner.className = `alert-banner alert-${alert.type}`;
+    banner.innerHTML = `<i class="fas fa-exclamation-triangle"></i>${alert.message}`;
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+// Chart management
+function initializeChart() {
+  try {
+    const canvas = document.getElementById('mainChart');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      updateChart('trend');
+    } else {
+      console.error('Chart canvas not found');
+    }
+  } catch (error) {
+    console.error('Error initializing chart:', error);
+  }
+}
+
+function updateChart(type) {
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  
+  if (currentChart) {
+    currentChart.destroy();
+  }
+  
+  switch(type) {
+    case 'trend':
+      createTrendChart(ctx);
+      break;
+    case 'correlation':
+      createCorrelationChart(ctx);
+      break;
+    case 'radar':
+      createRadarChart(ctx);
+      break;
+  }
+}
+
+function createTrendChart(ctx) {
+  try {
+    const labels = scoreHistory.map((_, index) => `Day ${index + 1}`);
+    const data = scoreHistory.map(entry => entry && entry.overall ? entry.overall : 0);
+
+    currentChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Cognitive Score',
+          data: data,
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99, 102, 241, 0.1)',
+          borderWidth: 3,
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#6366f1',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            grid: {
+              color: 'rgba(203, 213, 225, 0.3)'
+            }
+          },
+          x: {
+            grid: {
+              color: 'rgba(203, 213, 225, 0.3)'
+            }
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error creating trend chart:', error);
+  }
+}
+
+function createCorrelationChart(ctx) {
+  if (scoreHistory.length < 2) {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.fillStyle = '#64748b';
+    ctx.font = '16px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText('Need more data for correlation analysis', ctx.canvas.width/2, ctx.canvas.height/2);
+    return;
+  }
+  
+  currentChart = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Sleep vs Score',
+        data: scoreHistory.map(entry => ({x: entry.sleep, y: entry.overall})),
+        backgroundColor: 'rgba(99, 102, 241, 0.6)',
+        borderColor: '#6366f1'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true
+        }
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Sleep Duration (hours)'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Cognitive Score'
+          },
+          beginAtZero: true,
+          max: 100
+        }
+      }
+    }
+  });
+}
+
+function createRadarChart(ctx) {
+  try {
+    if (scoreHistory.length === 0) {
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      ctx.fillStyle = '#64748b';
+      ctx.font = '16px Inter';
+      ctx.textAlign = 'center';
+      ctx.fillText('No data available for radar chart', ctx.canvas.width/2, ctx.canvas.height/2);
+      return;
+    }
+
+    const latest = scoreHistory[scoreHistory.length - 1];
+    if (!latest) return;
+
+    currentChart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ['Memory', 'Focus', 'Stress Resilience', 'Sleep Quality'],
+        datasets: [{
+          label: 'Current Scores',
+          data: [latest.memory || 0, latest.focus || 0, latest.stressResilience || 0, latest.sleepQuality || 0],
+          backgroundColor: 'rgba(99, 102, 241, 0.2)',
+          borderColor: '#6366f1',
+          borderWidth: 2,
+          pointBackgroundColor: '#6366f1'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            beginAtZero: true,
+            max: 100,
+            grid: {
+              color: 'rgba(203, 213, 225, 0.3)'
+            }
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error creating radar chart:', error);
+  }
+}
+
+function switchChart(type, targetElement) {
+  try {
+    currentChartType = type;
+    document.querySelectorAll('.chart-tab').forEach(tab => tab.classList.remove('active'));
+
+    // If targetElement is provided, use it; otherwise try to find the active element
+    const activeTab = targetElement || document.querySelector(`[onclick="switchChart('${type}')"]`);
+    if (activeTab) {
+      activeTab.classList.add('active');
+    }
+
+    updateChart(type);
+  } catch (error) {
+    console.error('Error switching chart:', error);
+  }
+}
+
+// Badge system
+function initializeBadges() {
+  const badges = [
+    { id: 'first-entry', icon: '🎯', label: 'First Entry', condition: (data) => data.totalEntries >= 1 },
+    { id: 'week-streak', icon: '🔥', label: 'Week Streak', condition: (data) => data.streak >= 7 },
+    { id: 'high-scorer', icon: '🌟', label: 'High Scorer', condition: (data) => data.bestScore >= 80 },
+    { id: 'consistent', icon: '📈', label: 'Consistent', condition: (data) => data.totalEntries >= 30 },
+    { id: 'perfectionist', icon: '💎', label: 'Perfectionist', condition: (data) => data.bestScore >= 95 },
+    { id: 'wellness-warrior', icon: '⚡', label: 'Wellness Warrior', condition: (data) => data.avgScore >= 75 }
+  ];
+  
+  const container = document.getElementById('badgesGrid');
+  container.innerHTML = '';
+  
+  badges.forEach(badge => {
+    const badgeEl = document.createElement('div');
+    badgeEl.className = `badge-item ${userData.badges.includes(badge.id) ? 'earned' : ''}`;
+    badgeEl.innerHTML = `
+      <div class="badge-icon">${badge.icon}</div>
+      <div class="badge-label">${badge.label}</div>
+    `;
+    container.appendChild(badgeEl);
+  });
+}
+
+function checkBadges() {
+  const badges = [
+    { id: 'first-entry', condition: () => userData.totalEntries >= 1 },
+    { id: 'week-streak', condition: () => userData.streak >= 7 },
+    { id: 'high-scorer', condition: () => userData.bestScore >= 80 },
+    { id: 'consistent', condition: () => userData.totalEntries >= 30 },
+    { id: 'perfectionist', condition: () => userData.bestScore >= 95 },
+    { id: 'wellness-warrior', condition: () => userData.avgScore >= 75 }
+  ];
+  
+  badges.forEach(badge => {
+    if (badge.condition() && !userData.badges.includes(badge.id)) {
+      userData.badges.push(badge.id);
+      showBadgeNotification(badge.id);
+    }
+  });
+  
+  initializeBadges();
+}
+
+function showBadgeNotification(badgeId) {
+  // Could implement toast notification here
+  console.log(`Badge earned: ${badgeId}`);
+}
+
+// Data management
+function saveToFirebase(data, scores) {
+  const entryData = {
+    ...data,
+    ...scores,
+    timestamp: new Date().toISOString(),
+    date: new Date().toDateString()
+  };
+
+  try {
+    const newRef = ref(window.firebaseDB, 'cognitive_data');
+    push(newRef, entryData).then(() => {
+      console.log('Data saved successfully');
+    }).catch((error) => {
+      console.error('Error saving data:', error);
+      alert('Failed to save data. Please check your internet connection.');
+    });
+
+    // Update local data
+    scoreHistory.push(entryData);
+    if (scoreHistory.length > 50) scoreHistory.shift(); // Keep last 50 entries
+
+    updateUserStats();
+    saveUserData();
+  } catch (error) {
+    console.error('Error in saveToFirebase:', error);
+    alert('Failed to save data. Please try again.');
+  }
+}
+
+function loadUserData() {
+  try {
+    const dataRef = ref(window.firebaseDB, 'cognitive_data');
+    get(dataRef).then((snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        scoreHistory = Object.values(data).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        updateUserStats();
+        updateChart(currentChartType);
+      }
+    }).catch((error) => {
+      console.error('Error loading cognitive data:', error);
+    });
+
+    // Load user metadata
+    const userRef = ref(window.firebaseDB, 'user_metadata');
+    get(userRef).then((snapshot) => {
+      if (snapshot.exists()) {
+        userData = { ...userData, ...snapshot.val() };
+        updateStatsDisplay();
+        initializeBadges();
+      }
+    }).catch((error) => {
+      console.error('Error loading user metadata:', error);
+    });
+  } catch (error) {
+    console.error('Error in loadUserData:', error);
+  }
+}
+
+function updateUserStats() {
+  if (scoreHistory.length === 0) return;
+
+  try {
+    userData.totalEntries = scoreHistory.length;
+
+    // Safe array operations with error handling
+    const overallScores = scoreHistory.map(entry => entry && entry.overall ? entry.overall : 0).filter(score => score > 0);
+
+    if (overallScores.length > 0) {
+      userData.bestScore = Math.max(...overallScores);
+      userData.avgScore = Math.round(overallScores.reduce((sum, score) => sum + score, 0) / overallScores.length);
+    } else {
+      userData.bestScore = 0;
+      userData.avgScore = 0;
+    }
+
+    // Calculate streak
+    let streak = 0;
+    const today = new Date().toDateString();
+    for (let i = scoreHistory.length - 1; i >= 0; i--) {
+      if (scoreHistory[i] && scoreHistory[i].timestamp) {
+        const entryDate = new Date(scoreHistory[i].timestamp).toDateString();
+        const daysDiff = Math.floor((new Date(today) - new Date(entryDate)) / (1000 * 60 * 60 * 24));
+        if (daysDiff === streak) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+    }
+    userData.streak = streak;
+
+    updateStatsDisplay();
+    checkBadges();
+  } catch (error) {
+    console.error('Error in updateUserStats:', error);
+    // Set safe defaults
+    userData.totalEntries = scoreHistory.length || 0;
+    userData.bestScore = 0;
+    userData.avgScore = 0;
+    userData.streak = 0;
+    updateStatsDisplay();
+  }
+}
+
+function updateStatsDisplay() {
+  try {
+    const avgScoreEl = document.getElementById('avgScore');
+    const bestScoreEl = document.getElementById('bestScore');
+    const streakEl = document.getElementById('streak');
+    const totalEntriesEl = document.getElementById('totalEntries');
+
+    if (avgScoreEl) avgScoreEl.textContent = userData.avgScore || '--';
+    if (bestScoreEl) bestScoreEl.textContent = userData.bestScore || '--';
+    if (streakEl) streakEl.textContent = userData.streak || '--';
+    if (totalEntriesEl) totalEntriesEl.textContent = userData.totalEntries || '--';
+  } catch (error) {
+    console.error('Error updating stats display:', error);
+  }
+}
+
+function saveUserData() {
+  try {
+    const userRef = ref(window.firebaseDB, 'user_metadata');
+    set(userRef, userData).then(() => {
+      console.log('User data saved successfully');
+    }).catch((error) => {
+      console.error('Error saving user data:', error);
+    });
+  } catch (error) {
+    console.error('Error in saveUserData:', error);
+  }
+}
+
+// Theme management
+function toggleTheme() {
+  const body = document.body;
+  const currentTheme = body.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  
+  body.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  
+  const icon = document.querySelector('.theme-toggle i');
+  icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+
+// Load saved theme
+const savedTheme = localStorage.getItem('theme') || 'light';
+document.body.setAttribute('data-theme', savedTheme);
+const themeIcon = document.querySelector('.theme-toggle i');
+themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+
+// Export functionality
+function exportData(format) {
+  if (scoreHistory.length === 0) {
+    alert('No data to export. Please submit at least one assessment.');
+    return;
+  }
+  
+  if (format === 'csv') {
+    exportCSV();
+  } else if (format === 'pdf') {
+    exportPDF();
+  }
+}
+
+function exportCSV() {
+  const headers = ['Date', 'Overall Score', 'Memory', 'Focus', 'Stress Resilience', 'Sleep Quality', 'Sleep Hours', 'Sleep Quality Rating', 'Stress Level', 'Activity Minutes', 'Diet Quality', 'Meditation Minutes', 'Medications'];
+  
+  const rows = scoreHistory.map(entry => [
+    new Date(entry.timestamp).toLocaleDateString(),
+    entry.overall,
+    entry.memory,
+    entry.focus,
+    entry.stressResilience,
+    entry.sleepQuality,
+    entry.sleep,
+    entry.sleepQuality,
+    entry.stress,
+    entry.activity,
+    entry.diet,
+    entry.meditation,
+    entry.meds || ''
+  ]);
+  
+  const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+  
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `cognitive-data-${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+}
+
+function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  doc.setFontSize(20);
+  doc.text('NeuroGuard Cognitive Report', 20, 30);
+  
+  doc.setFontSize(12);
+  doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 45);
+  doc.text(`Total Entries: ${userData.totalEntries}`, 20, 55);
+  doc.text(`Average Score: ${userData.avgScore}`, 20, 65);
+  doc.text(`Best Score: ${userData.bestScore}`, 20, 75);
+  doc.text(`Current Streak: ${userData.streak} days`, 20, 85);
+  
+  doc.text('Recent Scores:', 20, 105);
+  
+  const recentScores = scoreHistory.slice(-10);
+  recentScores.forEach((entry, index) => {
+    const y = 120 + (index * 10);
+    doc.text(`${new Date(entry.timestamp).toLocaleDateString()}: ${entry.overall}`, 25, y);
+  });
+  
+  doc.save(`cognitive-report-${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+// Event listeners
+function setupEventListeners() {
+  document.getElementById('cognitiveForm').addEventListener('submit', handleFormSubmit);
+  window.toggleTheme = toggleTheme;
+  window.switchChart = switchChart;
+  window.exportData = exportData;
+  
+  // Initialize chart
+  initializeChart();
+}
+
+function handleFormSubmit(e) {
+  e.preventDefault();
+  
+  const submitButton = document.querySelector('.submit-button');
+  const originalContent = submitButton.innerHTML;
+  
+  submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating...';
+  submitButton.classList.add('loading');
+  
+  setTimeout(() => {
+    const data = {
+      timestamp: new Date().toISOString(),
+      sleep: parseFloat(document.getElementById('sleep').value),
+      sleepQuality: parseInt(document.getElementById('sleepQuality').value),
+      stress: parseInt(document.getElementById('stress').value),
+      activity: parseInt(document.getElementById('activity').value),
+      diet: parseInt(document.getElementById('diet').value),
+      meditation: parseInt(document.getElementById('meditation').value),
+      meds: document.getElementById('meds').value.trim()
+    };
+    
+    const scores = calculateScores(data);
+    const recommendations = generateRecommendations(data, scores);
+    const alert = generateAlerts(data, scores);
+    
+    updateScoreDisplays(scores);
+    updateRecommendations(recommendations);
+    showAlert(alert);
+    
+    try {
+      saveToFirebase(data, scores);
+    } catch (error) {
+      console.error('Error saving to Firebase:', error);
+      alert('Failed to save data. Your assessment was calculated but not saved.');
+    }
+    updateChart(currentChartType);
+    
+    submitButton.innerHTML = originalContent;
+    submitButton.classList.remove('loading');
+  }, 1000);
+}
+</script>
+
 </body>
 </html>
