@@ -732,9 +732,9 @@ body {
 
     <div class="chart-container">
       <div class="chart-tabs">
-        <button class="chart-tab active" onclick="switchChart('trend')">Trend</button>
-        <button class="chart-tab" onclick="switchChart('correlation')">Correlation</button>
-        <button class="chart-tab" onclick="switchChart('radar')">Radar</button>
+        <button class="chart-tab active" onclick="switchChart('trend', this)">Trend</button>
+        <button class="chart-tab" onclick="switchChart('correlation', this)">Correlation</button>
+        <button class="chart-tab" onclick="switchChart('radar', this)">Radar</button>
       </div>
       <canvas id="mainChart"></canvas>
     </div>
