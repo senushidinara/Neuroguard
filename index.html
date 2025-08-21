@@ -1033,8 +1033,17 @@ function showAlert(alert) {
 
 // Chart management
 function initializeChart() {
-  const ctx = document.getElementById('mainChart').getContext('2d');
-  updateChart('trend');
+  try {
+    const canvas = document.getElementById('mainChart');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      updateChart('trend');
+    } else {
+      console.error('Chart canvas not found');
+    }
+  } catch (error) {
+    console.error('Error initializing chart:', error);
+  }
 }
 
 function updateChart(type) {
