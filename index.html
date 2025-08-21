@@ -1045,51 +1045,55 @@ function updateChart(type) {
 }
 
 function createTrendChart(ctx) {
-  const labels = scoreHistory.map((_, index) => `Day ${index + 1}`);
-  const data = scoreHistory.map(entry => entry.overall);
-  
-  currentChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Cognitive Score',
-        data: data,
-        borderColor: '#6366f1',
-        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-        borderWidth: 3,
-        fill: true,
-        tension: 0.4,
-        pointBackgroundColor: '#6366f1',
-        pointBorderColor: '#ffffff',
-        pointBorderWidth: 2,
-        pointRadius: 6
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false
-        }
+  try {
+    const labels = scoreHistory.map((_, index) => `Day ${index + 1}`);
+    const data = scoreHistory.map(entry => entry && entry.overall ? entry.overall : 0);
+
+    currentChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Cognitive Score',
+          data: data,
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99, 102, 241, 0.1)',
+          borderWidth: 3,
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#6366f1',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointRadius: 6
+        }]
       },
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 100,
-          grid: {
-            color: 'rgba(203, 213, 225, 0.3)'
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
           }
         },
-        x: {
-          grid: {
-            color: 'rgba(203, 213, 225, 0.3)'
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            grid: {
+              color: 'rgba(203, 213, 225, 0.3)'
+            }
+          },
+          x: {
+            grid: {
+              color: 'rgba(203, 213, 225, 0.3)'
+            }
           }
         }
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.error('Error creating trend chart:', error);
+  }
 }
 
 function createCorrelationChart(ctx) {
