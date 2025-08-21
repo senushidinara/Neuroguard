@@ -1212,11 +1212,21 @@ function createRadarChart(ctx) {
   }
 }
 
-function switchChart(type) {
-  currentChartType = type;
-  document.querySelectorAll('.chart-tab').forEach(tab => tab.classList.remove('active'));
-  event.target.classList.add('active');
-  updateChart(type);
+function switchChart(type, targetElement) {
+  try {
+    currentChartType = type;
+    document.querySelectorAll('.chart-tab').forEach(tab => tab.classList.remove('active'));
+
+    // If targetElement is provided, use it; otherwise try to find the active element
+    const activeTab = targetElement || document.querySelector(`[onclick="switchChart('${type}')"]`);
+    if (activeTab) {
+      activeTab.classList.add('active');
+    }
+
+    updateChart(type);
+  } catch (error) {
+    console.error('Error switching chart:', error);
+  }
 }
 
 // Badge system
