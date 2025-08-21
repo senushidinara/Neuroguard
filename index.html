@@ -828,10 +828,23 @@ let userData = {
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', function() {
-  initializeSliders();
-  initializeBadges();
-  loadUserData();
-  setupEventListeners();
+  try {
+    initializeSliders();
+    initializeBadges();
+
+    // Check Firebase connectivity before loading data
+    if (window.firebaseDB) {
+      loadUserData();
+    } else {
+      console.warn('Firebase not initialized, running in offline mode');
+      updateStatsDisplay(); // Show default values
+    }
+
+    setupEventListeners();
+  } catch (error) {
+    console.error('Error during app initialization:', error);
+    alert('App initialization failed. Some features may not work properly.');
+  }
 });
 
 // Slider initialization and event handling
