@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuroGuard Cognitive Score</title>
+<script type="module">
+  // Firebase SDK
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+  import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD46r68uu1HtgbvHydIBhFxAcQOCNTtWNM",
+    authDomain: "neuroguard-ba100.firebaseapp.com",
+    projectId: "neuroguard-ba100",
+    storageBucket: "neuroguard-ba100.firebasestorage.app",
+    messagingSenderId: "665637579760",
+    appId: "1:665637579760:web:e452a55d2836474ac54b35",
+    measurementId: "G-EJ05T3717P"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  export { db };
+</script>
+<style>
+body { font-family: 'Poppins', sans-serif; background: linear-gradient(120deg, #89f7fe, #66a6ff); margin: 0; padding: 0; }
+.container { max-width: 700px; margin: 50px auto; background: #fff; border-radius: 15px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);}
+h1 { text-align: center; color: #333; }
+input, select, textarea { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; }
+button { background: #4CAF50; color: white; padding: 15px 20px; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; }
+button:hover { background: #45a049; }
+#scoreOutput { text-align: center; font-size: 24px; font-weight: bold; margin-top: 20px; }
+.chart-container { width: 100%; height: 300px; margin-top: 30px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>NeuroGuard Cognitive Dashboard</h1>
+<form id="cognitiveForm">
+<label>Sleep Duration (hours):</label>
+<input type="number" id="sleep" min="0" max="24" required>
+
+<label>Sleep Quality (1-10):</label>
+<input type="number" id="sleepQuality" min="1" max="10" required>
+
+<label>Stress Level (1-10):</label>
+<input type="number" id="stress" min="1" max="10" required>
+
+<label>Physical Activity (minutes/day):</label>
+<input type="number" id="activity" min="0" max="300" required>
+
+<label>Diet Quality (1-10):</label>
+<input type="number" id="diet" min="1" max="10" required>
+
+<label>Meditation / Mindfulness (minutes/day):</label>
+<input type="number" id="meditation" min="0" max="120" required>
+
+<label>Medication Taken (comma-separated, optional):</label>
+<input type="text" id="meds">
+
+<button type="submit">Submit & Get Score</button>
+</form>
+
+<h2 id="scoreOutput"></h2>
+<div class="chart-container">
+<canvas id="scoreChart"></canvas>
+</div>
+</div>
+
+<script type="module">
+import { db } from './index.html';
+import { ref, push, set } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+const ctx = document.getElementById('scoreChart').getContext('2d');
+let scoreHistory = [];
+
+function calculateScore(data){
+  // Weighted formula for advanced scoring
+  let score = 0;
+  score += data.sleep*6 + data.sleepQuality*5 + data.activity*0.3 + data.diet*4 + data.meditation*2 - data.stress*4;
+  score = Math.max(0, Math.min(100, score));
+  return Math.round(score);
+}
+
+function updateChart(score){
+  scoreHistory.push(score);
+  if(scoreHistory.length > 10) scoreHistory.shift(); // keep last 10 scores
+  const chartData = {
+    labels: scoreHistory.map((_,i)=> i+1),
+    datasets: [{
+      label: 'Cognitive Score',
+      data: scoreHistory,
+      borderColor: '#4CAF50',
+      backgroundColor: 'rgba(76, 175, 80,0.2)',
+      fill: true,
+      tension: 0.4
+    }]
+  };
+  if(window.myChart) window.myChart.destroy();
+  window.myChart = new Chart(ctx, { type: 'line', data: chartData, options: { responsive: true, animation:{duration:500} } });
+}
+
+document.getElementById('cognitiveForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const data = {
+    timestamp: new Date().toISOString(),
+    sleep: Number(document.getElementById('sleep').value),
+    sleepQuality: Number(document.getElementById('sleepQuality').value),
+    stress: Number(document.getElementById('stress').value),
+    activity: Number(document.getElementById('activity').value),
+    diet: Number(document.getElementById('diet').value),
+    meditation: Number(document.getElementById('meditation').value),
+    meds: document.getElementById('meds').value
+  };
+  const score = calculateScore(data);
+  document.getElementById('scoreOutput').innerText = "Your Cognitive Score: " + score;
+  updateChart(score);
+
+  // Save to Firebase
+  const newRef = ref(db, 'cognitive_data');
+  push(newRef, {...data, cognitiveScore: score});
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>
