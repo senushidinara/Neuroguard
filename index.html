@@ -812,7 +812,7 @@ body {
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script type="module">
-import { ref, push, get, onValue } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+import { ref, push, get, set, onValue } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
 // Global variables
 let currentChart = null;
@@ -1239,75 +1239,131 @@ function saveToFirebase(data, scores) {
     timestamp: new Date().toISOString(),
     date: new Date().toDateString()
   };
-  
-  const newRef = ref(window.firebaseDB, 'cognitive_data');
-  push(newRef, entryData);
-  
-  // Update local data
-  scoreHistory.push(entryData);
-  if (scoreHistory.length > 50) scoreHistory.shift(); // Keep last 50 entries
-  
-  updateUserStats();
-  saveUserData();
+
+  try {
+    const newRef = ref(window.firebaseDB, 'cognitive_data');
+    push(newRef, entryData).then(() => {
+      console.log('Data saved successfully');
+    }).catch((error) => {
+      console.error('Error saving data:', error);
+      alert('Failed to save data. Please check your internet connection.');
+    });
+
+    // Update local data
+    scoreHistory.push(entryData);
+    if (scoreHistory.length > 50) scoreHistory.shift(); // Keep last 50 entries
+
+    updateUserStats();
+    saveUserData();
+  } catch (error) {
+    console.error('Error in saveToFirebase:', error);
+    alert('Failed to save data. Please try again.');
+  }
 }
 
 function loadUserData() {
-  const dataRef = ref(window.firebaseDB, 'cognitive_data');
-  get(dataRef).then((snapshot) => {
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-      scoreHistory = Object.values(data).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-      updateUserStats();
-      updateChart(currentChartType);
-    }
-  });
-  
-  // Load user metadata
-  const userRef = ref(window.firebaseDB, 'user_metadata');
-  get(userRef).then((snapshot) => {
-    if (snapshot.exists()) {
-      userData = { ...userData, ...snapshot.val() };
-      updateStatsDisplay();
-      initializeBadges();
-    }
-  });
+  try {
+    const dataRef = ref(window.firebaseDB, 'cognitive_data');
+    get(dataRef).then((snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        scoreHistory = Object.values(data).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        updateUserStats();
+        updateChart(currentChartType);
+      }
+    }).catch((error) => {
+      console.error('Error loading cognitive data:', error);
+    });
+
+    // Load user metadata
+    const userRef = ref(window.firebaseDB, 'user_metadata');
+    get(userRef).then((snapshot) => {
+      if (snapshot.exists()) {
+        userData = { ...userData, ...snapshot.val() };
+        updateStatsDisplay();
+        initializeBadges();
+      }
+    }).catch((error) => {
+      console.error('Error loading user metadata:', error);
+    });
+  } catch (error) {
+    console.error('Error in loadUserData:', error);
+  }
 }
 
 function updateUserStats() {
   if (scoreHistory.length === 0) return;
-  
-  userData.totalEntries = scoreHistory.length;
-  userData.bestScore = Math.max(...scoreHistory.map(entry => entry.overall));
-  userData.avgScore = Math.round(scoreHistory.reduce((sum, entry) => sum + entry.overall, 0) / scoreHistory.length);
-  
-  // Calculate streak
-  let streak = 0;
-  const today = new Date().toDateString();
-  for (let i = scoreHistory.length - 1; i >= 0; i--) {
-    const entryDate = new Date(scoreHistory[i].timestamp).toDateString();
-    const daysDiff = Math.floor((new Date(today) - new Date(entryDate)) / (1000 * 60 * 60 * 24));
-    if (daysDiff === streak) {
-      streak++;
+
+  try {
+    userData.totalEntries = scoreHistory.length;
+
+    // Safe array operations with error handling
+    const overallScores = scoreHistory.map(entry => entry && entry.overall ? entry.overall : 0).filter(score => score > 0);
+
+    if (overallScores.length > 0) {
+      userData.bestScore = Math.max(...overallScores);
+      userData.avgScore = Math.round(overallScores.reduce((sum, score) => sum + score, 0) / overallScores.length);
     } else {
-      break;
+      userData.bestScore = 0;
+      userData.avgScore = 0;
     }
+
+    // Calculate streak
+    let streak = 0;
+    const today = new Date().toDateString();
+    for (let i = scoreHistory.length - 1; i >= 0; i--) {
+      if (scoreHistory[i] && scoreHistory[i].timestamp) {
+        const entryDate = new Date(scoreHistory[i].timestamp).toDateString();
+        const daysDiff = Math.floor((new Date(today) - new Date(entryDate)) / (1000 * 60 * 60 * 24));
+        if (daysDiff === streak) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+    }
+    userData.streak = streak;
+
+    updateStatsDisplay();
+    checkBadges();
+  } catch (error) {
+    console.error('Error in updateUserStats:', error);
+    // Set safe defaults
+    userData.totalEntries = scoreHistory.length || 0;
+    userData.bestScore = 0;
+    userData.avgScore = 0;
+    userData.streak = 0;
+    updateStatsDisplay();
   }
-  userData.streak = streak;
-  
-  updateStatsDisplay();
-  checkBadges();
 }
 
 function updateStatsDisplay() {
-  document.getElementById('avgScore').textContent = userData.avgScore || '--';
-  document.getElementById('bestScore').textContent = userData.bestScore || '--';
-  document.getElementById('streak').textContent = userData.streak || '--';
-  document.getElementById('totalEntries').textContent = userData.totalEntries || '--';
+  try {
+    const avgScoreEl = document.getElementById('avgScore');
+    const bestScoreEl = document.getElementById('bestScore');
+    const streakEl = document.getElementById('streak');
+    const totalEntriesEl = document.getElementById('totalEntries');
+
+    if (avgScoreEl) avgScoreEl.textContent = userData.avgScore || '--';
+    if (bestScoreEl) bestScoreEl.textContent = userData.bestScore || '--';
+    if (streakEl) streakEl.textContent = userData.streak || '--';
+    if (totalEntriesEl) totalEntriesEl.textContent = userData.totalEntries || '--';
+  } catch (error) {
+    console.error('Error updating stats display:', error);
+  }
 }
 
 function saveUserData() {
-  const userRef = ref(window.firebaseDB, 'user_metadata');
-  set(userRef, userData);
+  try {
+    const userRef = ref(window.firebaseDB, 'user_metadata');
+    set(userRef, userData).then(() => {
+      console.log('User data saved successfully');
+    }).catch((error) => {
+      console.error('Error saving user data:', error);
+    });
+  } catch (error) {
+    console.error('Error in saveUserData:', error);
+  }
 }
 
 // Theme management
@@ -1437,7 +1493,12 @@ function handleFormSubmit(e) {
     updateRecommendations(recommendations);
     showAlert(alert);
     
-    saveToFirebase(data, scores);
+    try {
+      saveToFirebase(data, scores);
+    } catch (error) {
+      console.error('Error saving to Firebase:', error);
+      alert('Failed to save data. Your assessment was calculated but not saved.');
+    }
     updateChart(currentChartType);
     
     submitButton.innerHTML = originalContent;
