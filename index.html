@@ -100,7 +100,7 @@
     <div class="site-inner">
       <div class="brand">NeuroBoutique</div>
       <nav class="site-menu" aria-label="Main navigation">
-        <a href="#" data-target="tab-home" class="active">Home</a>
+        <a href="#" data-target="tab-home">Home</a>
         <a href="#" data-target="tab-catalog">Catalog</a>
         <a href="#" data-target="tab-bundles">Bundles</a>
         <a href="#" data-target="tab-vip">VIP</a>
@@ -118,7 +118,7 @@
   <main class="container">
     <div class="panel main-wrap">
       <div id="mainPanels">
-        <section id="tab-home">
+        <section id="tab-home" class="hidden">
           <h2 class="section-title">NeuroBoutique — Where Science Meets Luxury</h2>
           <p class="muted">Personalized brain wellness products curated by AI. Use Catalog to browse and create bundles on the right.</p>
         </section>
@@ -214,9 +214,7 @@
     // NAV: wire header links
     $all('.site-menu a[data-target]').forEach(a=> a.addEventListener('click', e=>{ e.preventDefault(); const t=a.getAttribute('data-target'); showPanel(t); showToast(document.querySelector('#'+t+' .section-title')?.textContent || 'Opened'); }));
 
-    function showPanel(id){ const panels = document.querySelectorAll('#mainPanels > section'); panels.forEach(p=> p.classList.add('hidden')); const el=document.getElementById(id); if(el) el.classList.remove('hidden'); $all('.site-menu a').forEach(x=> x.classList.toggle('active', x.getAttribute('data-target')===id)); // ensure header doesn't overlap
-      window.scrollTo({ top: 0, behavior: 'smooth' }); }
-    showPanel('tab-home');
+    function showPanel(id){ const panels = document.querySelectorAll('#mainPanels > section'); panels.forEach(p=> p.classList.add('hidden')); const el=document.getElementById(id); if(el) el.classList.remove('hidden'); $all('.site-menu a').forEach(x=> x.classList.toggle('active', x.getAttribute('data-target')===id)); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
     // Elements
     const catalogGrid = $('#catalogGrid');
@@ -282,7 +280,19 @@
     // Dashboard populate
     function renderDashboard(){ const dash = $('#tab-dashboard'); if(!dash) return; const savedCount = (JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]').length); const itemsCount = bundleContents.querySelectorAll('.bundle-row').length; dash.innerHTML = '<h3 class="section-title">Dashboard</h3><div style="display:flex;gap:12px"><div style="flex:1;padding:12px;border-radius:10px;background:var(--card);box-shadow:var(--shadow)"><div style="font-weight:700">Saved Bundles</div><div style="font-size:24px">'+savedCount+'</div></div><div style="flex:1;padding:12px;border-radius:10px;background:var(--card);box-shadow:var(--shadow)"><div style="font-weight:700">Items in Bundle</div><div style="font-size:24px">'+itemsCount+'</div></div></div>'; }
 
-    // init
+    // Seed demo data so app isn't empty
+    function seedDemo(){ // saved bundles
+      const existing = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]');
+      if(!existing.length){ const demo = [{name:'Focus Pack', items:['NeuroFocus Capsules','Cogniva Gummies','NeuroTrainer Handheld']}]; localStorage.setItem('nb_saved_bundles', JSON.stringify(demo)); }
+      // populate sidebar bundle with one item if empty
+      if(bundleContents.querySelectorAll('.bundle-row').length===0){ addBundleItem(assets[0]); }
+    }
+
+    // init order: render content, seed, then show default tab
+    function init(){ renderHome(); renderCatalog(); renderSaved(); seedDemo(); updateCheckout(); renderDashboard(); // default to catalog to show populated content
+      showPanel('tab-catalog'); }
+
+    // home render
     function renderHome(){ const home = $('#tab-home'); home.innerHTML = '';
       const h2 = document.createElement('h2'); h2.className='section-title'; h2.textContent='NeuroBoutique — Where Science Meets Luxury'; home.appendChild(h2);
       const p = document.createElement('p'); p.className='muted'; p.textContent='AI-curated brain wellness products, bundles, and tools. Discover featured picks and personalized recommendations.'; home.appendChild(p);
@@ -305,7 +315,8 @@
       $('#openFeatured').addEventListener('click', ()=>{ showPanel('tab-bundles'); showToast('Opened bundle editor'); });
     }
 
-    renderHome(); renderCatalog(); renderSaved(); updateCheckout(); renderDashboard();
+    // start
+    init();
 
     // update dashboard when items change
     const observer = new MutationObserver(()=>{ renderDashboard(); }); observer.observe(bundleContents, {childList:true});
