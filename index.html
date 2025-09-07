@@ -126,7 +126,7 @@
     <div class="panel main-wrap">
       <div id="mainPanels">
         <section id="tab-home" class="hidden">
-          <h2 class="section-title">NeuroBoutique — Where Science Meets Luxury</h2>
+          <h2 class="section-title">NeuroBoutique ��� Where Science Meets Luxury</h2>
           <p class="muted">Personalized brain wellness products curated by AI. Use Catalog to browse and create bundles on the right.</p>
           <div class="hero">
             <div class="hero-visual">
@@ -449,6 +449,25 @@
       renderHome(); renderCatalog(); refreshSavedList(); renderGallery(); updateDashboard(); }
 
     init();
+
+    // enhanced interactivity
+    function addCardTilt(){ const cards = document.querySelectorAll('.card-product'); cards.forEach(card=>{ card.style.transformStyle='preserve-3d'; card.style.transition='transform .18s ease'; const glow = card.querySelector('.card-glow'); card.addEventListener('mousemove', e=>{ const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; const cx = rect.width/2; const cy = rect.height/2; const dx = (x - cx)/cx; const dy = (y - cy)/cy; const rx = dy*6; const ry = dx*8; card.style.transform = `perspective(900px) rotateX(${ -rx }deg) rotateY(${ ry }deg) translateZ(6px)`; if(glow){ glow.style.background = `radial-gradient(circle at ${50+dx*20}% ${50+dy*20}%, rgba(124,58,237,0.12), transparent 25%)`; glow.style.opacity='1'; } }); card.addEventListener('mouseleave', ()=>{ card.style.transform='none'; if(glow) glow.style.opacity='0'; }); // make focusable
+        card.addEventListener('focus', ()=> card.classList.add('focused')); card.addEventListener('blur', ()=> card.classList.remove('focused')); }); }
+
+    function addButtonRipple(){ document.addEventListener('click', function(e){ const b = e.target.closest('.btn'); if(!b) return; const rect = b.getBoundingClientRect(); const span = document.createElement('span'); span.className='btn-ripple'; const size=Math.max(rect.width, rect.height)*2; span.style.position='absolute'; span.style.left=(e.clientX-rect.left - size/2)+'px'; span.style.top=(e.clientY-rect.top - size/2)+'px'; span.style.width=size+'px'; span.style.height=size+'px'; span.style.borderRadius='50%'; span.style.background='rgba(255,255,255,0.18)'; span.style.transform='scale(0)'; span.style.pointerEvents='none'; span.style.transition='transform .6s ease, opacity .6s ease'; b.appendChild(span); requestAnimationFrame(()=>{ span.style.transform='scale(1)'; span.style.opacity='0'; }); setTimeout(()=> span.remove(),700); }, true); }
+
+    // saved bundle delegated handlers
+    function addSavedDelegation(){ const list = document.getElementById('savedBundlesList'); if(!list) return; list.addEventListener('click', function(e){ const btn = e.target.closest('button'); if(!btn) return; const card = btn.closest('.card-product'); const idx = Array.from(list.querySelectorAll('.card-product')).indexOf(card); if(idx<0) return; const action = btn.textContent.trim().toLowerCase(); if(action==='load'){ const b = bundles[idx]; bundleArea.innerHTML=''; b.items.forEach(it=>{ const asset = assets.find(a=> a.name===it.name); if(asset) addToBundle(asset, it.qty || 1); }); syncPanel(); updateDashboard(); showToast('Loaded'); } else if(action==='delete'){ bundles.splice(idx,1); persist(); refreshSavedList(); showToast('Deleted'); } }); }
+
+    // keyboard interactions for card products
+    function addKeyboardCardActions(){ document.addEventListener('keydown', function(e){ const el = document.activeElement; if(!el || !el.classList.contains('card-product')) return; if(e.key==='Enter'){ el.querySelector('.thumb')?.click(); } if(e.key===' ' || e.code==='Space'){ e.preventDefault(); el.querySelector('.btn-primary')?.click(); } }); }
+
+    // holographic particles in hero
+    function initHeroParticles(){ const hero = document.querySelector('.hero-visual'); if(!hero) return; const canvas = document.createElement('canvas'); canvas.style.position='absolute'; canvas.style.inset='0'; canvas.style.pointerEvents='none'; hero.style.position='relative'; hero.appendChild(canvas); const ctx = canvas.getContext('2d'); let w=0,h=0; function resize(){ w=canvas.width = hero.clientWidth; h=canvas.height = hero.clientHeight; } window.addEventListener('resize', resize); resize(); const particles=[]; for(let i=0;i<18;i++){ particles.push({x:Math.random()*w,y:Math.random()*h,r:2+Math.random()*4,dx:(Math.random()-0.5)*0.4,dy:(Math.random()-0.5)*0.4,alpha:0.08+Math.random()*0.18}); }
+      function loop(){ ctx.clearRect(0,0,w,h); particles.forEach(p=>{ p.x += p.dx; p.y += p.dy; if(p.x<0) p.x=w; if(p.x>w) p.x=0; if(p.y<0) p.y=h; if(p.y>h) p.y=0; ctx.beginPath(); const g = ctx.createRadialGradient(p.x,p.y,p.r*0.1,p.x,p.y,p.r); g.addColorStop(0,'rgba(124,58,237,'+p.alpha+')'); g.addColorStop(1,'rgba(124,58,237,0)'); ctx.fillStyle = g; ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }); requestAnimationFrame(loop); } loop(); }
+
+    // init extras
+    addCardTilt(); addButtonRipple(); addSavedDelegation(); addKeyboardCardActions(); initHeroParticles();
 
     // utility exposures for debugging
     window.addToBundle = addToBundle; window.addToCart = addToCart; window.grantPoints = grantPoints; window.runAnalysis = runAnalysis; window.startMemoryGame = startMemoryGame;
