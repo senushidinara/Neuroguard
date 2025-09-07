@@ -1166,6 +1166,16 @@ body {
   const arClose = document.getElementById('arClose');
   const arPreviewContent = document.getElementById('arPreviewContent');
 
+  // Toast helper
+  function showToast(message, duration = 3000){
+    try{
+      let container = document.getElementById('nb-toast-container');
+      if(!container){ container = document.createElement('div'); container.id='nb-toast-container'; container.style.position='fixed'; container.style.bottom='20px'; container.style.right='20px'; container.style.zIndex='3000'; document.body.appendChild(container); }
+      const t = document.createElement('div'); t.className='nb-toast'; t.style.background='rgba(0,0,0,0.8)'; t.style.color='#fff'; t.style.padding='8px 12px'; t.style.borderRadius='8px'; t.style.marginTop='8px'; t.style.boxShadow='0 6px 18px rgba(0,0,0,0.3)'; t.textContent = message; container.appendChild(t);
+      setTimeout(()=>{ t.style.transition='opacity 0.4s'; t.style.opacity='0'; setTimeout(()=> t.remove(), 400); }, duration);
+    }catch(err){ console.warn('toast failed', err); }
+  }
+
   // basic product value map used by optimizer
   const valueMap = {
     'NeuroFocus Capsules': 24,
@@ -1183,71 +1193,85 @@ body {
   }
 
   function optimizeBundle(){
-    const items = getBundleItems();
-    if(items.length<=1) return;
-    // sort by value desc
-    items.sort((a,b)=> (valueMap[b.name]||0) - (valueMap[a.name]||0));
-    // re-render
-    bundleContents.innerHTML='';
-    items.forEach(it=> bundleContents.appendChild(it.node));
-    updateCheckout();
+    try{
+      const items = getBundleItems();
+      if(items.length<=1){ showToast('Add at least 2 items to optimize'); return; }
+      // sort by value desc
+      items.sort((a,b)=> (valueMap[b.name]||0) - (valueMap[a.name]||0));
+      // re-render
+      bundleContents.innerHTML='';
+      items.forEach(it=> bundleContents.appendChild(it.node));
+      updateCheckout();
+      showToast('Bundle optimized');
+    }catch(err){ console.error('optimize error',err); showToast('Optimizer failed'); }
   }
 
   function saveBundle(){
-    const items = getBundleItems().map(i=>i.name);
-    if(items.length===0){ alert('No items to save'); return; }
-    const name = prompt('Name this bundle', 'My Bundle');
-    if(!name) return;
-    const saved = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]');
-    saved.push({name, items});
-    localStorage.setItem('nb_saved_bundles', JSON.stringify(saved));
-    renderSavedBundles();
+    try{
+      const items = getBundleItems().map(i=>i.name);
+      if(items.length===0){ showToast('No items to save'); return; }
+      const name = prompt('Name this bundle', 'My Bundle');
+      if(!name) { showToast('Save cancelled'); return; }
+      const saved = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]');
+      saved.push({name, items});
+      localStorage.setItem('nb_saved_bundles', JSON.stringify(saved));
+      renderSavedBundles();
+      showToast('Bundle saved');
+    }catch(err){ console.error('save error',err); showToast('Failed to save bundle'); }
   }
 
   function renderSavedBundles(){
-    savedList.innerHTML='';
-    const saved = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]');
-    saved.forEach((b, idx)=>{
-      const el = document.createElement('div');
-      el.className='product-card-compact';
-      el.style.justifyContent='space-between';
-      el.innerHTML = `<div><strong>${b.name}</strong><div style="font-size:12px;color:var(--text-secondary)">${b.items.join(', ')}</div></div><div style="display:flex;gap:6px"><button class="export-button" data-load="${idx}">Load</button><button class="export-button" data-delete="${idx}">Delete</button></div>`;
-      savedList.appendChild(el);
-    });
-    // attach handlers
-    savedList.querySelectorAll('[data-load]').forEach(btn=> btn.addEventListener('click', (e)=>{
-      const idx = parseInt(btn.getAttribute('data-load'));
+    try{
+      savedList.innerHTML='';
       const saved = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]');
-      const b = saved[idx];
-      if(!b) return;
-      // clear current
-      bundleContents.innerHTML='';
-      // add items from mapping
-      b.items.forEach(name=>{
-        // find asset
-        const found = assets.find(a=>a.name===name);
-        if(found){
-          const bundleItem = document.createElement('div');
-          bundleItem.className='bundle-item';
-          bundleItem.setAttribute('data-product', name);
-          const img = document.createElement('img'); img.src = found.src; img.className='product-thumb'; img.style.width='48px'; img.style.height='48px'; img.style.borderRadius='6px'; img.style.objectFit='cover';
-          const label = document.createElement('div'); label.style.flex='1'; label.style.margin='0 8px'; label.textContent = name;
-          const removeBtn = document.createElement('button'); removeBtn.className='export-button'; removeBtn.textContent='Remove'; removeBtn.addEventListener('click', ()=>{ bundleItem.remove(); updateCheckout(); });
-          bundleItem.appendChild(img); bundleItem.appendChild(label); bundleItem.appendChild(removeBtn);
-          bundleContents.appendChild(bundleItem);
-        }
+      saved.forEach((b, idx)=>{
+        const el = document.createElement('div');
+        el.className='product-card-compact';
+        el.style.justifyContent='space-between';
+        el.innerHTML = `<div><strong>${b.name}</strong><div style="font-size:12px;color:var(--text-secondary)">${b.items.join(', ')}</div></div><div style="display:flex;gap:6px"><button class="export-button" data-load="${idx}">Load</button><button class="export-button" data-delete="${idx}">Delete</button></div>`;
+        savedList.appendChild(el);
       });
-      updateCheckout();
-      activateTab('tab-bundles');
-    }));
+      // attach handlers
+      savedList.querySelectorAll('[data-load]').forEach(btn=> btn.addEventListener('click', (e)=>{
+        try{
+          const idx = parseInt(btn.getAttribute('data-load'));
+          const saved = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]');
+          const b = saved[idx];
+          if(!b) return;
+          // clear current
+          bundleContents.innerHTML='';
+          // add items from mapping
+          b.items.forEach(name=>{
+            // find asset
+            const found = assets.find(a=>a.name===name);
+            if(found){
+              const bundleItem = document.createElement('div');
+              bundleItem.className='bundle-item';
+              bundleItem.setAttribute('data-product', name);
+              const img = document.createElement('img'); img.src = found.src; img.className='product-thumb'; img.style.width='48px'; img.style.height='48px'; img.style.borderRadius='6px'; img.style.objectFit='cover';
+              const label = document.createElement('div'); label.style.flex='1'; label.style.margin='0 8px'; label.textContent = name;
+              const removeBtn = document.createElement('button'); removeBtn.className='export-button'; removeBtn.textContent='Remove'; removeBtn.addEventListener('click', ()=>{ bundleItem.remove(); updateCheckout(); showToast('Removed from bundle'); });
+              bundleItem.appendChild(img); bundleItem.appendChild(label); bundleItem.appendChild(removeBtn);
+              bundleContents.appendChild(bundleItem);
+            }
+          });
+          updateCheckout();
+          activateTab('tab-bundles');
+          showToast('Bundle loaded');
+        }catch(err){ console.error('load bundle',err); showToast('Failed to load bundle'); }
+      }));
 
-    savedList.querySelectorAll('[data-delete]').forEach(btn=> btn.addEventListener('click', ()=>{
-      const idx = parseInt(btn.getAttribute('data-delete'));
-      const saved = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]');
-      saved.splice(idx,1);
-      localStorage.setItem('nb_saved_bundles', JSON.stringify(saved));
-      renderSavedBundles();
-    }));
+      savedList.querySelectorAll('[data-delete]').forEach(btn=> btn.addEventListener('click', ()=>{
+        try{
+          const idx = parseInt(btn.getAttribute('data-delete'));
+          const saved = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]');
+          saved.splice(idx,1);
+          localStorage.setItem('nb_saved_bundles', JSON.stringify(saved));
+          renderSavedBundles();
+          showToast('Bundle deleted');
+        }catch(err){ console.error('delete bundle',err); showToast('Failed to delete'); }
+      }));
+    }catch(err){ console.error('render saved',err); }
   }
 
   optimizeBtn && optimizeBtn.addEventListener('click', optimizeBundle);
@@ -1255,14 +1279,17 @@ body {
 
   // AR preview: simple placeholder showing thumbnails of current bundle
   arBtn && arBtn.addEventListener('click', ()=>{
-    arPreviewContent.innerHTML = '';
-    const items = getBundleItems();
-    if(items.length===0){ arPreviewContent.textContent='No items in bundle to preview.'; } else {
-      items.forEach(it=>{
-        const img = document.createElement('img'); img.src = (it.node.querySelector('img') || {}).src || ''; img.style.width='80px'; img.style.height='80px'; img.style.objectFit='cover'; img.style.borderRadius='6px'; arPreviewContent.appendChild(img);
-      });
-    }
-    arModal.hidden = false;
+    try{
+      arPreviewContent.innerHTML = '';
+      const items = getBundleItems();
+      if(items.length===0){ arPreviewContent.textContent='No items in bundle to preview.'; showToast('No items in bundle'); }
+      else {
+        items.forEach(it=>{
+          const img = document.createElement('img'); img.src = (it.node.querySelector('img') || {}).src || ''; img.style.width='80px'; img.style.height='80px'; img.style.objectFit='cover'; img.style.borderRadius='6px'; arPreviewContent.appendChild(img);
+        });
+      }
+      arModal.hidden = false;
+    }catch(err){ console.error('ar preview',err); showToast('AR preview failed'); }
   });
   arClose && arClose.addEventListener('click', ()=> arModal.hidden = true);
 
