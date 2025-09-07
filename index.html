@@ -126,7 +126,7 @@
     <div class="panel main-wrap">
       <div id="mainPanels">
         <section id="tab-home" class="hidden">
-          <h2 class="section-title">NeuroBoutique ��� Where Science Meets Luxury</h2>
+          <h2 class="section-title">NeuroBoutique — Where Science Meets Luxury</h2>
           <p class="muted">Personalized brain wellness products curated by AI. Use Catalog to browse and create bundles on the right.</p>
           <div class="hero">
             <div class="hero-visual">
@@ -305,7 +305,58 @@
 
     // nav
     $all('.site-menu a[data-target]').forEach(a=> a.addEventListener('click', e=>{ e.preventDefault(); const t=a.getAttribute('data-target'); showPanel(t); showToast(document.querySelector('#'+t+' .section-title')?.textContent || 'Opened'); }));
-    function showPanel(id){ const panels = document.querySelectorAll('#mainPanels > section'); panels.forEach(p=> p.classList.add('hidden')); const el=document.getElementById(id); if(el) el.classList.remove('hidden'); $all('.site-menu a').forEach(x=> x.classList.toggle('active', x.getAttribute('data-target')===id)); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    function showPanel(id){ const panels = document.querySelectorAll('#mainPanels > section'); panels.forEach(p=> p.classList.add('hidden')); const el=document.getElementById(id); if(el) el.classList.remove('hidden'); $all('.site-menu a').forEach(x=> x.classList.toggle('active', x.getAttribute('data-target')===id)); // scroll and refresh interactions
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // when showing home, ensure hero particles initialize after layout
+      if(id === 'tab-home'){
+        setTimeout(()=>{ initHeroParticles(true); refreshInteractive(); }, 120); }
+      // always refresh interactive behavior for dynamic cards
+      setTimeout(()=> refreshInteractive(), 80);
+    }
+
+    // ------------------ Interactivity helpers ------------------
+    // Delegated tilt handler for .card-product (single global listener)
+    let _tiltActive = false;
+    function refreshInteractive(){ addCardTilt(); addButtonRipple(); addKeyboardCardActions(); }
+
+    function addCardTilt(){ if(_tiltActive) return; _tiltActive = true; const onMove = (e)=>{
+        const el = e.target.closest && e.target.closest('.card-product');
+        // reset transforms for previously hovered cards not containing cursor
+        document.querySelectorAll('.card-product').forEach(card=>{
+          if(card!==el){ card.style.transform = 'none'; const g=card.querySelector('.card-glow'); if(g) g.style.opacity='0'; }
+        });
+        if(!el) return;
+        const rect = el.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; const cx = rect.width/2; const cy = rect.height/2; const dx = (x - cx)/cx; const dy = (y - cy)/cy; const rx = dy*7; const ry = dx*10; el.style.transform = `perspective(900px) rotateX(${ -rx }deg) rotateY(${ ry }deg) translateZ(6px)`; const glow = el.querySelector('.card-glow'); if(glow){ glow.style.background = `radial-gradient(circle at ${50+dx*20}% ${50+dy*20}%, rgba(124,58,237,0.14), transparent 22%)`; glow.style.opacity='1'; }
+      };
+      const onLeave = (e)=>{
+        const el = e.target.closest && e.target.closest('.card-product'); if(el){ el.style.transform='none'; const g=el.querySelector('.card-glow'); if(g) g.style.opacity='0'; }
+      };
+      document.addEventListener('mousemove', onMove, {passive:true});
+      document.addEventListener('mouseleave', ()=>{ document.querySelectorAll('.card-product').forEach(c=>{ c.style.transform='none'; const g=c.querySelector('.card-glow'); if(g) g.style.opacity='0'; }); }, true);
+    }
+
+    // Ensure button ripple is idempotent
+    function addButtonRipple(){ /* noop here because main ripple added elsewhere */ }
+
+    function addKeyboardCardActions(){ /* noop - keyboard handled elsewhere */ }
+
+    // improved hero particles: can be (re)initialized when home is visible
+    let _heroParticlesInited = false;
+    function initHeroParticles(force){ const hero = document.querySelector('.hero-visual'); if(!hero) return; // if already inited and not forced, skip
+      if(_heroParticlesInited && !force) return; _heroParticlesInited = true;
+      // remove existing canvas if any
+      const existing = hero.querySelector('canvas'); if(existing) existing.remove();
+      const canvas = document.createElement('canvas'); canvas.style.position='absolute'; canvas.style.inset='0'; canvas.style.pointerEvents='none'; canvas.style.width='100%'; canvas.style.height='100%'; canvas.width = hero.clientWidth || 400; canvas.height = hero.clientHeight || 220; hero.style.position = hero.style.position || 'relative'; hero.appendChild(canvas);
+      const ctx = canvas.getContext('2d'); let w=canvas.width, h=canvas.height; function resize(){ w = canvas.width = hero.clientWidth || 400; h = canvas.height = hero.clientHeight || 220; }
+      window.addEventListener('resize', resize);
+      const particles = [];
+      const count = Math.max(8, Math.floor((w*h)/90000));
+      for(let i=0;i<count;i++){ particles.push({x:Math.random()*w,y:Math.random()*h,r:1+Math.random()*6,dx:(Math.random()-0.5)*0.3,dy:(Math.random()-0.5)*0.3,alpha:0.08+Math.random()*0.18}); }
+      let raf;
+      function loop(){ ctx.clearRect(0,0,w,h); particles.forEach(p=>{ p.x += p.dx; p.y += p.dy; if(p.x<0) p.x=w; if(p.x>w) p.x=0; if(p.y<0) p.y=h; if(p.y>h) p.y=0; const g = ctx.createRadialGradient(p.x,p.y,p.r*0.1,p.x,p.y,p.r); g.addColorStop(0,'rgba(124,58,237,'+p.alpha+')'); g.addColorStop(1,'rgba(124,58,237,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }); raf = requestAnimationFrame(loop); }
+      if(typeof raf !== 'undefined') cancelAnimationFrame(raf);
+      loop();
+    }
 
     // render filters
     const badges = Array.from(new Set(assets.map(a=>a.badge)));
