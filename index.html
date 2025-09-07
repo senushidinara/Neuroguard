@@ -1144,9 +1144,31 @@ body {
   const galleryGrid = document.getElementById('galleryGrid');
 
   assets.forEach((asset, idx)=>{
-    // Create catalog card
+    // Simple price/badge data (can be replaced with real values)
+    const priceMap = {
+      'NeuroFocus Capsules': '$39.99',
+      'Cogniva Gummies': '$24.99',
+      'CalmNeuro Drops': '$29.99',
+      'NeuroTrainer Handheld': '$149.00',
+      'MindWave EEG Headband': '$199.00',
+      'NeuroCharge': '$19.99',
+      'HappyMind Chews': '$14.99',
+      'SleepSync Eye Mask': '$34.99'
+    };
+    const badgeMap = {
+      'NeuroFocus Capsules': 'Focus',
+      'Cogniva Gummies': 'Memory',
+      'CalmNeuro Drops': 'Calm',
+      'NeuroTrainer Handheld': 'Gadget',
+      'MindWave EEG Headband': 'Device',
+      'NeuroCharge': 'Energy',
+      'HappyMind Chews': 'Mood',
+      'SleepSync Eye Mask': 'Sleep'
+    };
+
+    // Create catalog card (polished boutique card)
     const catalogCard = document.createElement('div');
-    catalogCard.className = 'product-card-compact';
+    catalogCard.className = 'product-card-compact boutique-card';
     const catalogId = `catalog-${idx}`;
     catalogCard.id = catalogId;
     catalogCard.setAttribute('data-product', asset.name);
@@ -1157,18 +1179,30 @@ body {
     img.alt = asset.name;
     img.setAttribute('data-caption', asset.name);
 
-    const meta = document.createElement('div');
-    meta.innerHTML = `<div style="font-weight:700">${asset.name}</div><div style="font-size:12px;color:var(--text-secondary)">Shop product</div>`;
+    const info = document.createElement('div');
+    info.className = 'product-info';
+    info.innerHTML = `
+      <div class="product-title">${asset.name}</div>
+      <div class="product-meta"><span class="product-badge">${badgeMap[asset.name] || ''}</span><span class="product-price">${priceMap[asset.name] || ''}</span></div>
+    `;
+
+    const actions = document.createElement('div');
+    actions.className = 'product-actions';
+    const addBundleBtn = document.createElement('button'); addBundleBtn.className='export-button'; addBundleBtn.textContent='Add to Bundle';
+    const addCartBtn = document.createElement('button'); addCartBtn.className='submit-button'; addCartBtn.textContent='Add to Cart';
+    actions.appendChild(addBundleBtn); actions.appendChild(addCartBtn);
 
     catalogCard.appendChild(img);
-    catalogCard.appendChild(meta);
+    catalogCard.appendChild(info);
+    catalogCard.appendChild(actions);
 
-    // Make catalog card clickable to open lightbox
-    catalogCard.addEventListener('click', () => {
-      lightboxImg.src = asset.src;
-      lightboxImg.alt = asset.name;
-      lightboxCaption.textContent = asset.name;
-      lightbox.hidden = false;
+    // Lightbox on image click
+    img.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      refreshGalleryList();
+      currentIndex = galleryImgs.indexOf(img.src);
+      lightboxImg.src = img.src; lightboxCaption.textContent = asset.name;
+      document.getElementById('nb-lightbox').hidden = false;
     });
 
     if(catalogGrid) catalogGrid.appendChild(catalogCard);
@@ -1198,6 +1232,34 @@ body {
       listCard.addEventListener('dragstart', (e)=> e.dataTransfer.setData('text/plain', listId));
 
       productsList.appendChild(listCard);
+
+      // wire addBundleBtn to add same item programmatically
+      addBundleBtn.addEventListener('click', ()=>{
+        const ev = new DragEvent('drop', { bubbles: true });
+        // simulate by creating bundle item directly
+        const bundleItem = document.createElement('div');
+        bundleItem.className = 'bundle-item';
+        bundleItem.setAttribute('data-product', asset.name);
+        const imgEl = document.createElement('img'); imgEl.src = asset.src; imgEl.className='product-thumb'; imgEl.style.width='48px'; imgEl.style.height='48px'; imgEl.style.objectFit='cover'; imgEl.style.borderRadius='6px';
+        const label = document.createElement('div'); label.style.flex='1'; label.style.margin='0 8px'; label.textContent = asset.name;
+        const removeBtn = document.createElement('button'); removeBtn.className='export-button'; removeBtn.textContent='Remove'; removeBtn.addEventListener('click', ()=>{ bundleItem.remove(); updateCheckout(); showToast('Removed from bundle'); });
+        bundleItem.appendChild(imgEl); bundleItem.appendChild(label); bundleItem.appendChild(removeBtn);
+        bundleContents.appendChild(bundleItem);
+        updateCheckout(); showToast('Added to bundle');
+      });
+
+      // wire addCartBtn to update checkout immediately
+      addCartBtn.addEventListener('click', ()=>{
+        const bundleItem = document.createElement('div');
+        bundleItem.className = 'bundle-item';
+        bundleItem.setAttribute('data-product', asset.name);
+        const imgEl = document.createElement('img'); imgEl.src = asset.src; imgEl.className='product-thumb'; imgEl.style.width='48px'; imgEl.style.height='48px'; imgEl.style.objectFit='cover'; imgEl.style.borderRadius='6px';
+        const label = document.createElement('div'); label.style.flex='1'; label.style.margin='0 8px'; label.textContent = asset.name;
+        const removeBtn = document.createElement('button'); removeBtn.className='export-button'; removeBtn.textContent='Remove'; removeBtn.addEventListener('click', ()=>{ bundleItem.remove(); updateCheckout(); showToast('Removed from cart'); });
+        bundleItem.appendChild(imgEl); bundleItem.appendChild(label); bundleItem.appendChild(removeBtn);
+        bundleContents.appendChild(bundleItem);
+        updateCheckout(); showToast('Added to cart');
+      });
     }
 
     // Gallery item
