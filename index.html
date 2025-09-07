@@ -228,7 +228,7 @@
           <div class="mt-12">
             <h4>Mini Games & Rewards</h4>
             <div style="display:flex;gap:12px;align-items:center">
-              <div class="card-small" style="width:320px">
+              <div class="card-small" id="reactionCard" style="width:320px">
                 <div style="font-weight:700">Reaction Test</div>
                 <div class="muted">Click the circle as fast as you can when it appears.</div>
                 <div style="margin-top:8px"><button id="startReaction" class="btn btn-primary" type="button">Start</button></div>
@@ -237,8 +237,10 @@
               <div class="card-small" style="flex:1">
                 <div style="font-weight:700">Achievements</div>
                 <div id="badgesArea" style="margin-top:8px"></div>
+                <div style="margin-top:12px"><button id="startMemoryGame" class="btn btn-ghost" type="button">Start Memory Game</button></div>
               </div>
             </div>
+            <div id="memoryArea" style="margin-top:12px"></div>
           </div>
         </section>
 
@@ -381,13 +383,34 @@
     const savedList = $('#savedBundlesList');
     function refreshSavedList(){ savedList.innerHTML=''; bundles.forEach((b,i)=>{ const el = document.createElement('div'); el.className='card-product'; el.style.justifyContent='space-between'; el.innerHTML = `<div><strong>${b.name}</strong><div class=\"muted\" style=\"font-size:12px\">${b.items.map(it=> it.name).join(', ')}</div></div><div class=\"saved-controls\"></div>`; const controls = el.querySelector('.saved-controls'); const load = document.createElement('button'); load.className='btn btn-ghost'; load.type='button'; load.textContent='Load'; load.addEventListener('click', ()=>{ bundleArea.innerHTML=''; b.items.forEach(it=>{ const asset = assets.find(a=> a.name===it.name); if(asset) addToBundle(asset, it.qty || 1); }); syncPanel(); updateDashboard(); showToast('Loaded'); }); const del = document.createElement('button'); del.className='btn btn-ghost'; del.type='button'; del.textContent='Delete'; del.addEventListener('click', ()=>{ bundles.splice(i,1); persist(); refreshSavedList(); showToast('Deleted'); }); controls.appendChild(load); controls.appendChild(del); savedList.appendChild(el); }); $('#savedCount').textContent = bundles.length; }
 
-    // save bundle
-    $('#saveBundle').addEventListener('click', ()=>{ const rows = Array.from(bundleArea.querySelectorAll('.bundle-row')); if(!rows.length){ showToast('No items'); return; } const name = prompt('Bundle name','My Bundle'); if(!name) return; const payload = { name, items: rows.map(r=> ({ name: r.getAttribute('data-product'), qty: parseInt(r.querySelector('.qty-input')?.value||1) })) }; bundles.push(payload); persist(); refreshSavedList(); showToast('Saved'); });
+    // alias for backward compatibility
+    function renderSaved(){ refreshSavedList(); }
 
-    // optimize & clear
-    $('#optimizeBundle').addEventListener('click', ()=>{ const items = Array.from(bundleArea.querySelectorAll('.bundle-row')); items.sort((a,b)=> a.getAttribute('data-product').localeCompare(b.getAttribute('data-product'))); bundleArea.innerHTML=''; items.forEach(i=> bundleArea.appendChild(i)); syncPanel(); showToast('Optimized'); });
-    $('#clearBundle').addEventListener('click', ()=> clearBundle());
-    $('#predictBundle').addEventListener('click', ()=> predictBundle()); $('#predictBundleBtn').addEventListener('click', ()=>{ showPanel('tab-bundles'); setTimeout(()=> predictBundle(),200); });
+    // AI Concierge - local simulation
+    function runAnalysis(){ // simulate user metrics and recommendations
+      const baseline = {focus: Math.floor(40 + Math.random()*40), memory: Math.floor(40 + Math.random()*40), mood: Math.floor(40 + Math.random()*40), sleep: Math.floor(30 + Math.random()*50), energy: Math.floor(30 + Math.random()*50)};
+      // update focus score UI
+      const score = Math.round((baseline.focus + baseline.memory + baseline.mood)/3);
+      $('#focusScore').textContent = score;
+      // pick top 3 recommendations based on lowest metrics
+      const sortedMetrics = Object.entries(baseline).sort((a,b)=> a[1]-b[1]).map(x=>x[0]);
+      // score assets by matching impact to weaknesses
+      const scored = assets.map(a=>{ let s=0; Object.keys(a.impact).forEach(k=>{ if(sortedMetrics.indexOf(k) < 3) s += a.impact[k]*2; else s += a.impact[k]; }); return {asset:a, score:s}; }).sort((x,y)=> y.score - x.score).slice(0,3);
+      const recWrap = $('#conciergeRecommendations'); recWrap.innerHTML=''; scored.forEach(s=>{ const el = document.createElement('div'); el.className='card-product'; el.style.justifyContent='space-between'; el.innerHTML = `<div><strong>${s.asset.name}</strong><div class=\"muted\">${s.asset.desc}</div></div><div style=\"display:flex;flex-direction:column;gap:6px\"></div>`; const controls = el.querySelector('div:last-child'); const addBtn = document.createElement('button'); addBtn.className='btn btn-primary'; addBtn.type='button'; addBtn.textContent='Add to Bundle'; addBtn.addEventListener('click', ()=>{ addToBundle(s.asset); showToast('Added'); }); const infoBtn = document.createElement('button'); infoBtn.className='btn btn-ghost'; infoBtn.type='button'; infoBtn.textContent='View'; infoBtn.addEventListener('click', ()=>{ openProductModal(s.asset); }); controls.appendChild(addBtn); controls.appendChild(infoBtn); recWrap.appendChild(el); });
+      showToast('Analysis complete — personalized recommendations ready');
+    }
+
+    // Memory sequence mini-game
+    function startMemoryGame(){ const area = $('#memoryArea'); area.innerHTML=''; const container = document.createElement('div'); container.style.display='flex'; container.style.flexDirection='column'; container.style.gap='8px'; const info = document.createElement('div'); info.className='muted'; info.textContent='Repeat the color sequence'; container.appendChild(info); const board = document.createElement('div'); board.style.display='flex'; board.style.gap='8px'; const colors=['#f97316','#6366f1','#10b981','#ef4444']; const buttons = colors.map(c=>{ const b=document.createElement('div'); b.style.width='48px'; b.style.height='48px'; b.style.borderRadius='8px'; b.style.background=c; b.style.cursor='pointer'; board.appendChild(b); return b; }); container.appendChild(board); const status = document.createElement('div'); status.className='muted'; container.appendChild(status); area.appendChild(container);
+      let sequence=[]; let inputIndex=0; let accepting=false; function flash(idx){ buttons[idx].style.transform='scale(1.15)'; buttons[idx].style.boxShadow='0 8px 24px rgba(0,0,0,0.12)'; setTimeout(()=>{ buttons[idx].style.transform=''; buttons[idx].style.boxShadow=''; }, 400); }
+      function flashSequence(){ inputIndex=0; accepting=false; let i=0; status.textContent='Watch'; const t = setInterval(()=>{ const idx = sequence[i]; flash(idx); i++; if(i>=sequence.length){ clearInterval(t); status.textContent='Your turn'; accepting=true; } }, 600); }
+      function nextRound(){ sequence.push(Math.floor(Math.random()*colors.length)); flashSequence(); }
+      buttons.forEach((b,idx)=> b.addEventListener('click', ()=>{ if(!accepting) return; if(sequence[inputIndex]===idx){ flash(idx); inputIndex++; if(inputIndex===sequence.length){ status.textContent='Correct! Next round...'; grantPoints(10); accepting=false; setTimeout(nextRound,800); } } else { status.textContent='Wrong! Game over.'; accepting=false; sequence=[]; } })); // start
+      sequence=[]; nextRound(); }
+
+    // bind analysis button
+    document.getElementById('runAnalysis') && document.getElementById('runAnalysis').addEventListener('click', runAnalysis);
+    document.getElementById('startMemoryGame') && document.getElementById('startMemoryGame').addEventListener('click', startMemoryGame);
 
     // rewards & VIP
     function grantPoints(n){ const multiplier = vip==='Bronze'?1: vip==='Silver'?1.1: vip==='Gold'?1.25:1.5; points += Math.round(n * multiplier); persist(); updatePointsUI(); checkBadges(); }
@@ -396,8 +419,8 @@
     $('#upgradeVip').addEventListener('click', ()=>{ const tiers = ['Bronze','Silver','Gold','Platinum']; const idx = tiers.indexOf(vip); const next = tiers[Math.min(tiers.length-1, idx+1)]; if(next===vip){ showToast('Already top tier'); return; } vip = next; persist(); updatePointsUI(); showToast('Upgraded to '+vip); $('#vipTier').textContent = vip; });
 
     // reaction game
-    let reactionTimer=null; let reactionStart=0; function startReaction(){ $('#reactionResult').textContent='Get ready...'; const wait = 800 + Math.random()*1600; setTimeout(()=>{ const circle = document.createElement('div'); circle.style.width='80px'; circle.style.height='80px'; circle.style.borderRadius='50%'; circle.style.background='linear-gradient(90deg,var(--accent),var(--accent2))'; circle.style.marginTop='12px'; circle.style.cursor='pointer'; circle.id='reactionCircle'; document.querySelector('#tab-dashboard .card-small').appendChild(circle); reactionStart = performance.now(); circle.addEventListener('click', ()=>{ const dt = performance.now() - reactionStart; circle.remove(); $('#reactionResult').textContent = 'Reaction: '+Math.round(dt)+' ms'; grantPoints(Math.max(1, Math.round(1000/dt))); showToast('Reaction score awarded'); }); }, wait); }
-    $('#startReaction').addEventListener('click', ()=> startReaction());
+    let reactionTimer=null; let reactionStart=0; function startReaction(){ $('#reactionResult').textContent='Get ready...'; const wait = 800 + Math.random()*1600; setTimeout(()=>{ const circle = document.createElement('div'); circle.style.width='80px'; circle.style.height='80px'; circle.style.borderRadius='50%'; circle.style.background='linear-gradient(90deg,var(--accent),var(--accent2))'; circle.style.marginTop='12px'; circle.style.cursor='pointer'; circle.id='reactionCircle'; const reactionCard = document.getElementById('reactionCard'); reactionCard.appendChild(circle); reactionStart = performance.now(); circle.addEventListener('click', ()=>{ const dt = performance.now() - reactionStart; circle.remove(); $('#reactionResult').textContent = 'Reaction: '+Math.round(dt)+' ms'; grantPoints(Math.max(1, Math.round(1000/dt))); showToast('Reaction score awarded'); }); }, wait); }
+    document.getElementById('startReaction') && document.getElementById('startReaction').addEventListener('click', ()=> startReaction());
 
     // lightbox
     function openProductModal(a){ const lb=$('#nb-lightbox'); $('#lightboxImg').src=a.src; $('#lightboxCaption').textContent = a.name + ' — ' + a.priceStr + '\n' + a.desc; lb.style.display='flex'; lb.setAttribute('aria-hidden','false'); const sheet = lb.querySelector('.lightbox-sheet'); let actions = sheet.querySelector('.lightbox-actions'); if(actions) actions.remove(); actions = document.createElement('div'); actions.className='lightbox-actions'; actions.style.display='flex'; actions.style.gap='8px'; actions.style.marginTop='8px'; const b1=document.createElement('button'); b1.className='btn btn-primary'; b1.type='button'; b1.textContent='Add to Bundle'; const b2=document.createElement('button'); b2.className='btn btn-ghost'; b2.type='button'; b2.textContent='Add to Cart'; b1.addEventListener('click', ()=>{ addToBundle(a); grantPoints(5); showToast('Added to bundle +5 pts'); }); b2.addEventListener('click', ()=>{ addToCart(a,1); grantPoints(10); showToast('Added to cart +10 pts'); }); actions.appendChild(b1); actions.appendChild(b2); sheet.appendChild(actions); }
@@ -415,7 +438,7 @@
 
     function updateDashboard(){ $('#itemsInBundle').textContent = bundleArea.querySelectorAll('.bundle-row').length; updatePointsUI(); refreshSavedList(); renderCheckout(); updateCartCount(); checkBadges(); }
 
-    function init(){ seedDemo(); renderBadgeFilters(); renderHome(); renderCatalog(); renderSaved(); renderGallery(); syncPanel(); renderCheckout(); updateCartCount(); renderSaved(); updateDashboard(); // default to catalog
+    function init(){ seedDemo(); renderBadgeFilters(); renderHome(); renderCatalog(); refreshSavedList(); renderGallery(); syncPanel(); renderCheckout(); updateCartCount(); refreshSavedList(); updateDashboard(); // default to catalog
       showPanel('tab-catalog');
       $('#catalogSort').addEventListener('change', (e)=>{ const s = e.target.value; const activeChip = document.querySelector('.chip.active'); const badge = activeChip && activeChip.textContent !== 'All' ? activeChip.textContent : null; renderCatalog($('.site-search').value, badge, s); });
       $('.site-search').addEventListener('input', (e)=>{ const activeChip = document.querySelector('.chip.active'); const badge = activeChip && activeChip.textContent !== 'All' ? activeChip.textContent : null; renderCatalog(e.target.value, badge, $('#catalogSort').value); });
@@ -423,13 +446,22 @@
       $('#openFeatured').addEventListener('click', ()=>{ showPanel('tab-bundles'); });
       $('#proceedCheckout').addEventListener('click', ()=>{ if(!cart.length){ showToast('Cart is empty'); return; } alert('Demo checkout — total: ' + $('#checkoutTotal').textContent); cart=[]; persist(); renderCheckout(); updateCartCount(); showToast('Order placed (demo)'); });
       $('#clearCart').addEventListener('click', ()=>{ cart=[]; persist(); renderCheckout(); updateCartCount(); showToast('Cart cleared'); });
-      $('#startReaction')?.addEventListener('click', ()=> startReaction());
-      renderHome(); renderCatalog(); renderSaved(); renderGallery(); updateDashboard(); }
+      // actions
+      $('#predictBundle').addEventListener('click', ()=> predictBundle());
+      $('#predictBundleBtn').addEventListener('click', ()=>{ showPanel('tab-bundles'); setTimeout(()=> predictBundle(),200); });
+      $('#optimizeBundle').addEventListener('click', ()=>{ const items = Array.from(bundleArea.querySelectorAll('.bundle-row')); items.sort((a,b)=> a.getAttribute('data-product').localeCompare(b.getAttribute('data-product'))); bundleArea.innerHTML=''; items.forEach(i=> bundleArea.appendChild(i)); syncPanel(); showToast('Optimized'); });
+      $('#saveBundle').addEventListener('click', ()=>{ const rows = Array.from(bundleArea.querySelectorAll('.bundle-row')); if(!rows.length){ showToast('No items'); return; } const name = prompt('Bundle name','My Bundle'); if(!name) return; const payload = { name, items: rows.map(r=> ({ name: r.getAttribute('data-product'), qty: parseInt(r.querySelector('.qty-input')?.value||1) })) }; bundles.push(payload); persist(); refreshSavedList(); showToast('Saved'); });
+      $('#clearBundle').addEventListener('click', ()=> clearBundle());
+      // bind games
+      document.getElementById('startReaction') && document.getElementById('startReaction').addEventListener('click', ()=> startReaction());
+      document.getElementById('startMemoryGame') && document.getElementById('startMemoryGame').addEventListener('click', ()=> startMemoryGame());
+
+      renderHome(); renderCatalog(); refreshSavedList(); renderGallery(); updateDashboard(); }
 
     init();
 
-    // utility exposures for other handlers
-    window.addToBundle = addToBundle; window.addToCart = addToCart; window.grantPoints = grantPoints;
+    // utility exposures for debugging
+    window.addToBundle = addToBundle; window.addToCart = addToCart; window.grantPoints = grantPoints; window.runAnalysis = runAnalysis; window.startMemoryGame = startMemoryGame;
   })();
   </script>
 </body>
