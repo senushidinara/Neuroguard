@@ -1024,21 +1024,77 @@ body {
   const galleryGrid = document.getElementById('galleryGrid');
 
   assets.forEach((asset, idx)=>{
-    const card = document.createElement('div');
-    card.className = 'product-card-compact';
-    card.id = 'prod-'+idx;
-    card.setAttribute('draggable','true');
-    card.setAttribute('data-product', asset.name);
-    card.addEventListener('dragstart', (e)=> e.dataTransfer.setData('text/plain', card.id));
+    // Create catalog card
+    const catalogCard = document.createElement('div');
+    catalogCard.className = 'product-card-compact';
+    const catalogId = `catalog-${idx}`;
+    catalogCard.id = catalogId;
+    catalogCard.setAttribute('data-product', asset.name);
 
-    const img = document.createElement('img'); img.src = asset.src; img.className='product-thumb'; img.alt = asset.name; img.setAttribute('data-caption', asset.name);
-    const meta = document.createElement('div'); meta.innerHTML = `<div style="font-weight:700">${asset.name}</div><div style="font-size:12px;color:var(--text-secondary)">Shop product</div>`;
-    card.appendChild(img); card.appendChild(meta);
-    if(catalogGrid) catalogGrid.appendChild(card);
-    if(productsList) productsList.appendChild(card.cloneNode(true));
+    const img = document.createElement('img');
+    img.src = asset.src;
+    img.className = 'product-thumb';
+    img.alt = asset.name;
+    img.setAttribute('data-caption', asset.name);
 
-    const gitem = document.createElement('figure'); gitem.className='gallery-item'; const gimg = document.createElement('img'); gimg.src = asset.src; gimg.alt = asset.name; gimg.setAttribute('data-caption', asset.name); gitem.appendChild(gimg);
-    const gcap = document.createElement('figcaption'); gcap.textContent = asset.name; gitem.appendChild(gcap);
+    const meta = document.createElement('div');
+    meta.innerHTML = `<div style="font-weight:700">${asset.name}</div><div style="font-size:12px;color:var(--text-secondary)">Shop product</div>`;
+
+    catalogCard.appendChild(img);
+    catalogCard.appendChild(meta);
+
+    // Make catalog card clickable to open lightbox
+    catalogCard.addEventListener('click', () => {
+      lightboxImg.src = asset.src;
+      lightboxImg.alt = asset.name;
+      lightboxCaption.textContent = asset.name;
+      lightbox.hidden = false;
+    });
+
+    if(catalogGrid) catalogGrid.appendChild(catalogCard);
+
+    // Create product list item (for drag source) with unique id
+    if(productsList){
+      const listCard = document.createElement('div');
+      const listId = `list-${idx}`;
+      listCard.className = 'product-card-compact';
+      listCard.id = listId;
+      listCard.setAttribute('draggable', 'true');
+      listCard.setAttribute('data-product', asset.name);
+
+      const listImg = document.createElement('img');
+      listImg.src = asset.src;
+      listImg.className = 'product-thumb';
+      listImg.alt = asset.name;
+      listImg.setAttribute('data-caption', asset.name);
+
+      const listMeta = document.createElement('div');
+      listMeta.innerHTML = `<div style="font-weight:700">${asset.name}</div><div style="font-size:12px;color:var(--text-secondary)">Drag to bundle</div>`;
+
+      listCard.appendChild(listImg);
+      listCard.appendChild(listMeta);
+
+      // dragstart for list items
+      listCard.addEventListener('dragstart', (e)=> e.dataTransfer.setData('text/plain', listId));
+
+      productsList.appendChild(listCard);
+    }
+
+    // Gallery item
+    const gitem = document.createElement('figure');
+    gitem.className = 'gallery-item';
+    const gimg = document.createElement('img');
+    gimg.src = asset.src;
+    gimg.alt = asset.name;
+    gimg.setAttribute('data-caption', asset.name);
+    gimg.style.cursor = 'pointer';
+
+    const gcap = document.createElement('figcaption');
+    gcap.textContent = asset.name;
+
+    gitem.appendChild(gimg);
+    gitem.appendChild(gcap);
+
     if(galleryGrid) galleryGrid.appendChild(gitem);
   });
 
