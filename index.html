@@ -587,6 +587,26 @@ body {
   70% { transform: translate3d(0, -5px, 0); }
   90% { transform: translate3d(0, -2px, 0); }
 }
+  /* NeuroBoutique Overview Styles */
+  .overview-wrapper { max-width: 1400px; margin: 0 auto; padding: 0 20px 20px; }
+  .overview-panel { margin-top: 20px; }
+  .overview-header { display: grid; gap: 12px; margin-bottom: 20px; }
+  .overview-badge { display: inline-block; padding: 6px 10px; border-radius: 999px; background: var(--bg-tertiary); color: var(--text-secondary); font-weight: 600; font-size: 12px; width: fit-content; }
+  .overview-title { font-size: 22px; font-weight: 700; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .overview-subtitle { color: var(--text-secondary); }
+  .concierge-card { display: flex; gap: 12px; padding: 14px; border-radius: var(--radius); background: var(--bg-secondary); border-left: 4px solid var(--primary-color); }
+  .concierge-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); }
+  .concierge-title { font-weight: 700; color: var(--text-primary); }
+  .concierge-text { color: var(--text-primary); }
+  .concierge-note { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .blueprint-section { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 0; overflow: hidden; }
+  .section-summary { list-style: none; padding: 12px 14px; font-weight: 600; cursor: pointer; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; }
+  .blueprint-section[open] .section-summary { background: var(--bg-tertiary); }
+  .blueprint-content { padding: 12px 14px; }
+  .bullet-list { padding-left: 18px; display: grid; gap: 8px; color: var(--text-primary); }
+  .overview-footer { margin-top: 18px; color: var(--text-secondary); font-size: 12px; }
+  @media (max-width: 1024px) { .overview-grid { grid-template-columns: 1fr; } .overview-wrapper { padding: 0 10px 10px; } }
 </style>
 </head>
 <body>
