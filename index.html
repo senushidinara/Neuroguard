@@ -1000,6 +1000,23 @@ body {
     if(activePanel) activePanel.hidden = false;
   }
   tabs.forEach(tab => tab.addEventListener('click', ()=> activateTab(tab.dataset.target)));
+
+  // Wire top site nav (if present) to tabs and expose activateTab globally
+  window.activateTab = activateTab;
+  const siteLinks = document.querySelectorAll('.site-menu a[data-target]');
+  siteLinks.forEach(link => {
+    link.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const target = link.getAttribute('data-target');
+      activateTab(target);
+      // update active state
+      siteLinks.forEach(l=> l.classList.remove('active'));
+      link.classList.add('active');
+      // also highlight corresponding nb-tab
+      tabs.forEach(t=> t.classList.toggle('active', t.dataset.target===target));
+    });
+  });
+
   // initial
   activateTab('tab-onboarding');
 
