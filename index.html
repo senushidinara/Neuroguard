@@ -286,6 +286,21 @@
     // data
     const assets = [
       {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F98bb7a11c3194d19812159c2bd5a1451?format=webp&width=800', name:'NeuroFocus Capsules', price:39.99, priceStr:'$39.99', badge:'Focus', desc:'Premium nootropic for mental clarity and sustained focus.', impact:{focus:8,memory:4,mood:2,sleep:0,energy:2}},
+    ];
+
+    // ATTACHMENT IMAGES (user-supplied) - render separately, do NOT replace core assets
+    const attachments = [
+      'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F40d0038f73dd4462a7febf4cef6c55ae?format=webp&width=1200',
+      'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F98bb7a11c3194d19812159c2bd5a1451?format=webp&width=800',
+      'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F6611cdf0471046c5b894e95949364480?format=webp&width=800',
+      'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Fac6edc0e353a4e59afd16ef4c8a7d7d0?format=webp&width=800',
+      'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F5679f8aa2d00455a87a8c397f25d159a?format=webp&width=800',
+      'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Ff5eb718e92b042579abc4f559cdc1e24?format=webp&width=800',
+      'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Fb0e75b24a52a43108099e653eed44223?format=webp&width=800',
+      'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Fa3758d4729fe47f3a3d3d05219843a7a?format=webp&width=800'
+    ];
+
+    function renderLookbook(){ const wrap = $('#lookbook'); if(!wrap) return; wrap.innerHTML=''; attachments.forEach((u,i)=>{ const fig=document.createElement('figure'); fig.className='gallery-item'; const img=document.createElement('img'); img.src=u; img.alt='Lookbook '+(i+1); img.style.cursor='pointer'; img.addEventListener('click', ()=>{ $('#lightboxImg').src = u; $('#lightboxCaption').textContent = 'Lookbook — Image '+(i+1); $('#nb-lightbox').style.display='flex'; $('#nb-lightbox').setAttribute('aria-hidden','false'); }); fig.appendChild(img); wrap.appendChild(fig); }); }
       {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F6611cdf0471046c5b894e95949364480?format=webp&width=800', name:'Cogniva Gummies', price:24.99, priceStr:'$24.99', badge:'Memory', desc:'Chewable vitamins to support recall and mental stamina.', impact:{focus:4,memory:8,mood:2,sleep:0,energy:1}},
       {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Fac6edc0e353a4e59afd16ef4c8a7d7d0?format=webp&width=800', name:'CalmNeuro Drops', price:29.99, priceStr:'$29.99', badge:'Calm', desc:'Concentrated dropper for calm, restful states.', impact:{focus:0,memory:1,mood:8,sleep:5,energy:0}},
       {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F5679f8aa2d00455a87a8c397f25d159a?format=webp&width=800', name:'NeuroTrainer Handheld', price:149.00, priceStr:'$149.00', badge:'Gadget', desc:'Handheld cognitive trainer for attention & processing speed.', impact:{focus:7,memory:6,mood:3,sleep:0,energy:2}},
