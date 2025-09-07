@@ -2181,20 +2181,42 @@ function handleFormSubmit(e) {
 </script>
 
 <script>
-// Global delegation: activate any element with data-target attribute (site menu, tab buttons)
-document.addEventListener('click', function(e){
+// Robust nav & tab initialization after DOM ready
+document.addEventListener('DOMContentLoaded', function(){
   try{
-    const el = e.target.closest('[data-target]');
-    if(!el) return;
-    e.preventDefault();
-    const targetId = el.getAttribute('data-target');
-    if(!targetId) return;
-    if(typeof window.activateTab === 'function'){
-      window.activateTab(targetId);
-    } else if (typeof activateTab === 'function'){
-      activateTab(targetId);
+    const siteLinks = document.querySelectorAll('.site-menu a[data-target]');
+    const tabButtons = document.querySelectorAll('.nb-tab[data-target]');
+
+    function safeActivate(targetId){
+      try{
+        if(typeof window.activateTab === 'function'){
+          window.activateTab(targetId);
+        } else if (typeof activateTab === 'function'){
+          activateTab(targetId);
+        }
+        if(typeof showToast === 'function') showToast('Opened ' + targetId, 1200);
+      }catch(err){ console.error('activate error', err); }
     }
-  }catch(err){ console.error('nav delegation error', err); }
+
+    siteLinks.forEach(link => {
+      link.addEventListener('click', function(e){
+        e.preventDefault();
+        const target = link.getAttribute('data-target');
+        if(target) safeActivate(target);
+      });
+    });
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        const target = btn.getAttribute('data-target');
+        if(target) safeActivate(target);
+      });
+    });
+
+    // ensure Home shown by default
+    safeActivate('tab-home');
+  }catch(err){ console.error('nav init failed', err); }
 });
 </script>
 </body>
