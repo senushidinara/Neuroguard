@@ -2180,5 +2180,22 @@ function handleFormSubmit(e) {
 }
 </script>
 
+<script>
+// Global delegation: activate any element with data-target attribute (site menu, tab buttons)
+document.addEventListener('click', function(e){
+  try{
+    const el = e.target.closest('[data-target]');
+    if(!el) return;
+    e.preventDefault();
+    const targetId = el.getAttribute('data-target');
+    if(!targetId) return;
+    if(typeof window.activateTab === 'function'){
+      window.activateTab(targetId);
+    } else if (typeof activateTab === 'function'){
+      activateTab(targetId);
+    }
+  }catch(err){ console.error('nav delegation error', err); }
+});
+</script>
 </body>
 </html>
