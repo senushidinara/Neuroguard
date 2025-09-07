@@ -17,7 +17,7 @@
     body{padding-top:var(--header-height);}
 
     /* Header */
-    .site-header{position:fixed;inset:0 auto auto 0;height:var(--header-height);left:0;right:0;top:0;z-index:60;display:flex;align-items:center;background:rgba(255,255,255,0.7);backdrop-filter:blur(6px);border-bottom:1px solid rgba(15,23,42,0.04);}
+    .site-header{position:fixed;inset:0 auto auto 0;height:var(--header-height);left:0;right:0;top:0;z-index:60;display:flex;align-items:center;background:rgba(255,255,255,0.75);backdrop-filter:blur(6px);border-bottom:1px solid rgba(15,23,42,0.04)}
     .site-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:0 20px;width:100%}
     .brand{font-weight:700;font-size:20px;color:#0f172a}
     .site-menu{display:flex;gap:8px;margin-left:20px}
@@ -44,8 +44,10 @@
     .chip{padding:6px 10px;border-radius:999px;background:#fff;border:1px solid rgba(15,23,42,0.06);cursor:pointer;font-weight:700;color:var(--muted)}
     .chip.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff}
     .catalog-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-    .card-product{display:flex;gap:12px;align-items:center;padding:12px;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid rgba(15,23,42,0.03);transition:transform .18s ease, box-shadow .18s ease}
+    .card-product{display:flex;gap:12px;align-items:center;padding:12px;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid rgba(15,23,42,0.03);transition:transform .18s ease, box-shadow .18s ease;position:relative;overflow:visible}
     .card-product:hover{transform:translateY(-6px);box-shadow:0 12px 30px rgba(15,23,42,0.12)}
+    .card-glow{position:absolute;inset:0;border-radius:10px;pointer-events:none;box-shadow:0 0 40px rgba(139,92,246,0.12);opacity:0;transition:opacity .25s}
+    .card-product:hover .card-glow{opacity:1}
     .thumb{width:110px;height:110px;object-fit:cover;border-radius:8px;flex-shrink:0}
     .info{flex:1}
     .title{font-weight:700;color:#0f172a}
@@ -58,7 +60,7 @@
     .sidebar{position:relative}
     .sidebar .sidebar-title{font-weight:700;margin-bottom:12px}
     .sidebar .controls-row{display:flex;gap:8px;margin-top:12px}
-    .bundle-area{min-height:120px;padding:8px;border-radius:8px;background:#f1f5f9;border:1px dashed rgba(15,23,42,0.04);display:flex;flex-direction:column;gap:8px}
+    .bundle-area{min-height:120px;padding:8px;border-radius:8px;background:#f1f5f9;border:1px dashed rgba(15,23,42,0.04);display:flex;flex-direction:column;gap:8px;position:relative}
     .bundle-row{display:flex;gap:8px;align-items:center;padding:8px;background:#fff;border-radius:8px;border:1px solid rgba(15,23,42,0.03)}
     .bundle-row img{width:48px;height:48px;border-radius:6px;object-fit:cover}
     .bundle-row .bundle-label{flex:1}
@@ -92,6 +94,13 @@
     .ar-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);z-index:9997}
     .ar-sheet{background:#fff;padding:16px;border-radius:10px;max-width:720px;width:90%}
     .ar-grid{display:flex;gap:8px;flex-wrap:wrap}
+
+    /* Predictive overlay */
+    .predictive-sheet{padding:12px;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid rgba(15,23,42,0.04);box-shadow:var(--shadow);margin-top:12px}
+    .radar{width:220px;height:220px}
+
+    /* Gamification */
+    .badge-icon{display:inline-block;padding:6px 8px;border-radius:6px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;font-weight:700}
 
     /* Toasts */
     #nb-toast-container{position:fixed;right:20px;bottom:20px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end}
@@ -129,6 +138,28 @@
         <section id="tab-home" class="hidden">
           <h2 class="section-title">NeuroBoutique — Where Science Meets Luxury</h2>
           <p class="muted">Personalized brain wellness products curated by AI. Use Catalog to browse and create bundles on the right.</p>
+          <div class="hero">
+            <div class="hero-visual">
+              <img src="https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Faba059cdda1d4bd4a9f6b6765c035067?format=webp&width=800" alt="Hero">
+            </div>
+            <div class="hero-side">
+              <div class="card-small" id="aiConcierge">
+                <h4>AI Concierge</h4>
+                <div class="muted" id="conciergeText">Welcome back — your Focus Score today is <strong id="focusScore">72</strong></div>
+                <div class="mt-12">
+                  <button id="runAnalysis" class="btn btn-primary" type="button">Analyze my brain</button>
+                </div>
+                <div class="mt-12" id="conciergeRecommendations"></div>
+              </div>
+              <div class="card-small">
+                <h4>Featured Bundle</h4>
+                <div class="muted">Focus & Study Pack — NeuroFocus + Cogniva + NeuroTrainer</div>
+                <div class="mt-12"><button class="btn btn-primary" type="button" id="openFeatured">View Bundle</button></div>
+              </div>
+            </div>
+          </div>
+          <h3 class="section-title">Top Picks</h3>
+          <div class="catalog-grid" id="homePicks" style="grid-template-columns: repeat(3, 1fr);"></div>
         </section>
 
         <section id="tab-catalog" class="hidden">
@@ -147,16 +178,38 @@
 
         <section id="tab-bundles" class="hidden">
           <h3 class="section-title">Bundle Creator</h3>
-          <p class="muted">Use "Add to Bundle" from catalog to build a bundle, then save or optimize it.</p>
+          <p class="muted">Use "Add to Bundle" from catalog to build a bundle. Click Predict to see projected cognitive gains.</p>
           <div class="mt-12">
             <h4>Current Bundle</h4>
             <div class="bundle-area" id="bundleContentsPanel"></div>
+            <div class="mt-12" style="display:flex;gap:8px;align-items:center">
+              <button id="predictBundle" class="btn btn-primary" type="button">Predict</button>
+              <button id="clearBundle" class="btn btn-ghost" type="button">Clear</button>
+              <div id="predictContainer" style="margin-left:12px"></div>
+            </div>
+            <div class="predictive-sheet hidden" id="predictiveSheet">
+              <div style="display:flex;gap:12px;align-items:center">
+                <svg class="radar" viewBox="0 0 220 220" id="radarSVG"></svg>
+                <div>
+                  <div><strong>Predicted improvements</strong></div>
+                  <div class="muted" id="predictText">Based on current bundle composition.</div>
+                </div>
+              </div>
+              <div id="neuralCanvas" style="margin-top:12px;position:relative;height:120px"></div>
+            </div>
           </div>
         </section>
 
         <section id="tab-vip" class="hidden">
           <h3 class="section-title">VIP Membership</h3>
           <p class="muted">Tiered membership benefits and exclusive bundles.</p>
+          <div class="mt-12">
+            <div style="display:flex;gap:12px;align-items:center">
+              <div style="flex:1"><strong id="vipTier">Bronze</strong><div class="muted">Points: <span id="pointsDisplay">0</span></div></div>
+              <div style="display:flex;gap:8px"><button id="upgradeVip" class="btn btn-primary" type="button">Upgrade</button></div>
+            </div>
+            <div style="margin-top:12px"><strong>Perks</strong><ul><li>Early access</li><li>Personalized bundles</li><li>Exclusive offers</li></ul></div>
+          </div>
         </section>
 
         <section id="tab-checkout" class="hidden">
@@ -168,7 +221,25 @@
 
         <section id="tab-dashboard" class="hidden">
           <h3 class="section-title">Dashboard</h3>
-          <p class="muted">Mini dashboard (demo)</p>
+          <div style="display:flex;gap:12px">
+            <div style="flex:1;padding:12px;border-radius:10px;background:var(--card);box-shadow:var(--shadow)"><div style="font-weight:700">Saved Bundles</div><div style="font-size:24px" id="savedCount">0</div></div>
+            <div style="flex:1;padding:12px;border-radius:10px;background:var(--card);box-shadow:var(--shadow)"><div style="font-weight:700">Items in Bundle</div><div style="font-size:24px" id="itemsInBundle">0</div></div>
+          </div>
+          <div class="mt-12">
+            <h4>Mini Games & Rewards</h4>
+            <div style="display:flex;gap:12px;align-items:center">
+              <div class="card-small" style="width:320px">
+                <div style="font-weight:700">Reaction Test</div>
+                <div class="muted">Click the circle as fast as you can when it appears.</div>
+                <div style="margin-top:8px"><button id="startReaction" class="btn btn-primary" type="button">Start</button></div>
+                <div id="reactionResult" class="muted mt-12"></div>
+              </div>
+              <div class="card-small" style="flex:1">
+                <div style="font-weight:700">Achievements</div>
+                <div id="badgesArea" style="margin-top:8px"></div>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section id="tab-gallery" class="hidden">
@@ -184,6 +255,7 @@
       <div class="controls-row">
         <button id="optimizeBundle" class="btn btn-primary" type="button">Auto-optimize</button>
         <button id="saveBundle" class="btn btn-ghost" type="button">Save</button>
+        <button id="predictBundleBtn" class="btn btn-ghost" type="button">Predict</button>
         <button id="arPreview" class="btn btn-ghost" type="button">AR Preview</button>
       </div>
       <div class="mt-12">
@@ -216,74 +288,87 @@
   (function(){
     // data
     const assets = [
-      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F6ba10c6d85a449ec8e287fbed938ad9b?format=webp&width=800', name:'NeuroFocus Capsules', price:39.99, priceStr:'$39.99', badge:'Focus', desc:'Premium nootropic for mental clarity and sustained focus.'},
-      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F85d98986702e4713ba10b54c8b32238c?format=webp&width=800', name:'Cogniva Gummies', price:24.99, priceStr:'$24.99', badge:'Memory', desc:'Chewable vitamins to support recall and mental stamina.'},
-      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F0165df738dd84e17bab62c3e73422299?format=webp&width=800', name:'CalmNeuro Drops', price:29.99, priceStr:'$29.99', badge:'Calm', desc:'Concentrated dropper for calm, restful states.'},
-      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F7f04e73f8d8f4695934c92e39f5937a7?format=webp&width=800', name:'NeuroTrainer Handheld', price:149.00, priceStr:'$149.00', badge:'Gadget', desc:'Handheld cognitive trainer for attention & processing speed.'},
-      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Faba059cdda1d4bd4a9f6b6765c035067?format=webp&width=800', name:'MindWave EEG Headband', price:199.00, priceStr:'$199.00', badge:'Device', desc:'EEG wearable for biofeedback and meditation training.'},
-      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F3c591978967249828994e115de103c7a?format=webp&width=800', name:'NeuroCharge', price:19.99, priceStr:'$19.99', badge:'Energy', desc:'Effervescent drink mix for quick cognitive lift.'},
-      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F02ef19c1089e47b1986055bc021f9ae1?format=webp&width=800', name:'HappyMind Chews', price:14.99, priceStr:'$14.99', badge:'Mood', desc:'Tasty chews to support mood and resilience.'},
-      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F847d6f182939444c8f4c46a0c4e3cc3a?format=webp&width=800', name:'SleepSync Eye Mask', price:34.99, priceStr:'$34.99', badge:'Sleep', desc:'Smart eye mask to guide users into restorative sleep.'}
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F6ba10c6d85a449ec8e287fbed938ad9b?format=webp&width=800', name:'NeuroFocus Capsules', price:39.99, priceStr:'$39.99', badge:'Focus', desc:'Premium nootropic for mental clarity and sustained focus.', impact:{focus:8,memory:4,mood:2,sleep:0,energy:2}},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F85d98986702e4713ba10b54c8b32238c?format=webp&width=800', name:'Cogniva Gummies', price:24.99, priceStr:'$24.99', badge:'Memory', desc:'Chewable vitamins to support recall and mental stamina.', impact:{focus:4,memory:8,mood:2,sleep:0,energy:1}},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F0165df738dd84e17bab62c3e73422299?format=webp&width=800', name:'CalmNeuro Drops', price:29.99, priceStr:'$29.99', badge:'Calm', desc:'Concentrated dropper for calm, restful states.', impact:{focus:0,memory:1,mood:8,sleep:5,energy:0}},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F7f04e73f8d8f4695934c92e39f5937a7?format=webp&width=800', name:'NeuroTrainer Handheld', price:149.00, priceStr:'$149.00', badge:'Gadget', desc:'Handheld cognitive trainer for attention & processing speed.', impact:{focus:7,memory:6,mood:3,sleep:0,energy:2}},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Faba059cdda1d4bd4a9f6b6765c035067?format=webp&width=800', name:'MindWave EEG Headband', price:199.00, priceStr:'$199.00', badge:'Device', desc:'EEG wearable for biofeedback and meditation training.', impact:{focus:6,memory:5,mood:6,sleep:4,energy:1}},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F3c591978967249828994e115de103c7a?format=webp&width=800', name:'NeuroCharge', price:19.99, priceStr:'$19.99', badge:'Energy', desc:'Effervescent drink mix for quick cognitive lift.', impact:{focus:3,memory:1,mood:2,sleep:0,energy:7}},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F02ef19c1089e47b1986055bc021f9ae1?format=webp&width=800', name:'HappyMind Chews', price:14.99, priceStr:'$14.99', badge:'Mood', desc:'Tasty chews to support mood and resilience.', impact:{focus:1,memory:1,mood:7,sleep:0,energy:2}},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F847d6f182939444c8f4c46a0c4e3cc3a?format=webp&width=800', name:'SleepSync Eye Mask', price:34.99, priceStr:'$34.99', badge:'Sleep', desc:'Smart eye mask to guide users into restorative sleep.', impact:{focus:0,memory:0,mood:3,sleep:9,energy:1}}
     ];
 
     const $ = s => document.querySelector(s);
     const $all = s => Array.from(document.querySelectorAll(s));
 
-    // cart & bundle state (persist in localStorage)
+    // persisted state
     let cart = JSON.parse(localStorage.getItem('nb_cart')||'[]');
     let bundles = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]');
+    let points = parseInt(localStorage.getItem('nb_points')||'0');
+    let vip = localStorage.getItem('nb_vip')||'Bronze';
 
-    function persist(){ localStorage.setItem('nb_cart', JSON.stringify(cart)); localStorage.setItem('nb_saved_bundles', JSON.stringify(bundles)); }
+    function persist(){ localStorage.setItem('nb_cart', JSON.stringify(cart)); localStorage.setItem('nb_saved_bundles', JSON.stringify(bundles)); localStorage.setItem('nb_points', String(points)); localStorage.setItem('nb_vip', vip); }
 
-    // toasts
     function showToast(msg, t=1600){ const c = $('#nb-toast-container'); const el = document.createElement('div'); el.textContent=msg; el.className='toast'; el.style.background='linear-gradient(90deg,var(--accent),var(--accent2))'; el.style.color='#fff'; el.style.padding='8px 12px'; el.style.borderRadius='8px'; el.style.marginTop='8px'; el.style.boxShadow='var(--shadow)'; c.appendChild(el); setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),300); }, t); }
 
-    // navigation
+    // nav
     $all('.site-menu a[data-target]').forEach(a=> a.addEventListener('click', e=>{ e.preventDefault(); const t=a.getAttribute('data-target'); showPanel(t); showToast(document.querySelector('#'+t+' .section-title')?.textContent || 'Opened'); }));
     function showPanel(id){ const panels = document.querySelectorAll('#mainPanels > section'); panels.forEach(p=> p.classList.add('hidden')); const el=document.getElementById(id); if(el) el.classList.remove('hidden'); $all('.site-menu a').forEach(x=> x.classList.toggle('active', x.getAttribute('data-target')===id)); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
-    // filters
+    // render filters
     const badges = Array.from(new Set(assets.map(a=>a.badge)));
     function renderBadgeFilters(){ const wrap = $('#badgeFilters'); wrap.innerHTML=''; const all = document.createElement('button'); all.className='chip active'; all.textContent='All'; all.addEventListener('click', ()=>{ $all('.chip').forEach(c=>c.classList.remove('active')); all.classList.add('active'); renderCatalog(); }); wrap.appendChild(all);
       badges.forEach(b=>{ const btn = document.createElement('button'); btn.className='chip'; btn.textContent=b; btn.addEventListener('click', ()=>{ $all('.chip').forEach(c=>c.classList.remove('active')); btn.classList.add('active'); renderCatalog('', b); }); wrap.appendChild(btn); }); }
 
-    // catalog render with sort and badge filter
+    // render catalog
     const catalogGrid = $('#catalogGrid'); const galleryGrid = $('#galleryGrid');
     function renderCatalog(filter='', badgeFilter=null, sort='default'){ if(!catalogGrid) return; catalogGrid.innerHTML=''; galleryGrid && (galleryGrid.innerHTML=''); let list = assets.slice(); if(filter) list = list.filter(a=> a.name.toLowerCase().includes(filter.trim().toLowerCase()) || a.badge.toLowerCase().includes(filter.trim().toLowerCase())); if(badgeFilter) list = list.filter(a=> a.badge===badgeFilter);
       if(sort==='price-asc') list.sort((x,y)=> x.price - y.price); if(sort==='price-desc') list.sort((x,y)=> y.price - x.price); if(sort==='name-asc') list.sort((x,y)=> x.name.localeCompare(y.name));
       list.forEach(a=>{ const card=document.createElement('div'); card.className='card-product'; card.tabIndex=0;
+        const glow = document.createElement('div'); glow.className='card-glow'; card.appendChild(glow);
         const img=document.createElement('img'); img.className='thumb'; img.src=a.src; img.alt=a.name; img.addEventListener('click', ()=> openProductModal(a)); card.appendChild(img);
         const info=document.createElement('div'); info.className='info'; info.innerHTML=`<div class=\"title\">${a.name}</div><div class=\"meta\"><span class=\"pill\">${a.badge}</span><span class=\"price\">${a.priceStr}</span></div><div class=\"muted\" style=\"margin-top:6px;font-size:13px\">${a.desc}</div>`; card.appendChild(info);
-        const actions=document.createElement('div'); actions.className='actions'; const addBundle=document.createElement('button'); addBundle.className='btn btn-ghost'; addBundle.type='button'; addBundle.textContent='Add to Bundle'; addBundle.addEventListener('click', (e)=>{ e.stopPropagation(); addToBundle(a); showToast('Added to bundle'); });
-        const addCart=document.createElement('button'); addCart.className='btn btn-primary'; addCart.type='button'; addCart.textContent='Add to Cart'; addCart.addEventListener('click', (e)=>{ e.stopPropagation(); addToCart(a,1); showToast('Added to cart'); });
+        const actions=document.createElement('div'); actions.className='actions'; const addBundle=document.createElement('button'); addBundle.className='btn btn-ghost'; addBundle.type='button'; addBundle.textContent='Add to Bundle'; addBundle.addEventListener('click', (e)=>{ e.stopPropagation(); addToBundle(a); grantPoints(5); showToast('Added to bundle +5 pts'); });
+        const addCart=document.createElement('button'); addCart.className='btn btn-primary'; addCart.type='button'; addCart.textContent='Add to Cart'; addCart.addEventListener('click', (e)=>{ e.stopPropagation(); addToCart(a,1); grantPoints(10); showToast('Added to cart +10 pts'); });
         actions.appendChild(addBundle); actions.appendChild(addCart); card.appendChild(actions); catalogGrid.appendChild(card);
         if(galleryGrid){ const gItem = document.createElement('figure'); gItem.className='gallery-item'; const gi = document.createElement('img'); gi.src = a.src; gi.alt = a.name; gi.addEventListener('click', ()=> openProductModal(a)); gItem.appendChild(gi); galleryGrid.appendChild(gItem); }
       }); }
 
-    // bundle functions (sidebar + panel sync)
+    // bundle functions
     const bundleArea = $('#bundleContents'); const bundlePanel = $('#bundleContentsPanel');
     function clearBundlePlaceholder(){ const ph = bundleArea.querySelector('.muted'); if(ph) ph.remove(); }
     function addToBundle(asset, qty=1){ clearBundlePlaceholder(); const exists = Array.from(bundleArea.querySelectorAll('.bundle-row')).some(r=> r.getAttribute('data-product')===asset.name); if(exists){ showToast('Already in bundle'); return; }
       const row = document.createElement('div'); row.className='bundle-row'; row.setAttribute('data-product', asset.name);
       const img = document.createElement('img'); img.src=asset.src; img.alt=asset.name; row.appendChild(img);
       const label = document.createElement('div'); label.className='bundle-label'; label.textContent=asset.name; row.appendChild(label);
-      const qtyInput = document.createElement('input'); qtyInput.className='qty-input'; qtyInput.type='number'; qtyInput.min='1'; qtyInput.value=qty; qtyInput.addEventListener('input', ()=> updateCheckout()); row.appendChild(qtyInput);
-      const move = document.createElement('div'); move.className='move-controls'; const up = document.createElement('button'); up.className='btn btn-ghost'; up.type='button'; up.textContent='↑'; up.title='Move up'; up.addEventListener('click', ()=>{ const prev = row.previousElementSibling; if(prev) bundleArea.insertBefore(row, prev); syncPanel(); }); const down = document.createElement('button'); down.className='btn btn-ghost'; down.type='button'; down.textContent='↓'; down.title='Move down'; down.addEventListener('click', ()=>{ const next = row.nextElementSibling; if(next) bundleArea.insertBefore(next, row); syncPanel(); }); move.appendChild(up); move.appendChild(down); row.appendChild(move);
-      const rem = document.createElement('button'); rem.className='btn btn-ghost'; rem.type='button'; rem.textContent='Remove'; rem.addEventListener('click', ()=>{ row.remove(); syncPanel(); updateCheckout(); showToast('Removed'); }); row.appendChild(rem);
+      const qtyInput = document.createElement('input'); qtyInput.className='qty-input'; qtyInput.type='number'; qtyInput.min='1'; qtyInput.value=qty; qtyInput.addEventListener('input', ()=> updateDashboard()); row.appendChild(qtyInput);
+      const rem = document.createElement('button'); rem.className='btn btn-ghost'; rem.type='button'; rem.textContent='Remove'; rem.addEventListener('click', ()=>{ row.remove(); syncPanel(); updateDashboard(); showToast('Removed'); }); row.appendChild(rem);
       bundleArea.appendChild(row);
-      // also reflect in bundle panel (clone)
-      const clone = row.cloneNode(true);
-      // wire clone's buttons
-      clone.querySelectorAll('button').forEach(b=>{ b.addEventListener('click', ()=>{ // actions in panel mirror sidebar
-        const name = clone.getAttribute('data-product'); const original = Array.from(bundleArea.querySelectorAll('.bundle-row')).find(r=> r.getAttribute('data-product')===name);
-        if(!original) return; if(b.textContent.trim()==='Remove'){ original.remove(); clone.remove(); updateCheckout(); showToast('Removed'); } if(b.textContent.trim()==='↑'){ const prev=original.previousElementSibling; if(prev) bundleArea.insertBefore(original, prev); syncPanel(); } if(b.textContent.trim()==='↓'){ const next=original.nextElementSibling; if(next) bundleArea.insertBefore(next, original); syncPanel(); }
-      }); });
-      bundlePanel.appendChild(clone);
-      updateCheckout(); }
+      // reflect in panel
+      syncPanel(); updateDashboard(); }
 
-    function syncPanel(){ // rebuild panel from sidebar state
-      bundlePanel.innerHTML=''; Array.from(bundleArea.querySelectorAll('.bundle-row')).forEach(r=>{ const clone=r.cloneNode(true); // wire remove
-        clone.querySelectorAll('button').forEach(b=> b.addEventListener('click', ()=>{ const name = r.getAttribute('data-product'); if(b.textContent.trim()==='Remove'){ r.remove(); clone.remove(); updateCheckout(); showToast('Removed'); } if(b.textContent.trim()==='↑'){ const prev=r.previousElementSibling; if(prev) bundleArea.insertBefore(r, prev); syncPanel(); } if(b.textContent.trim()==='↓'){ const next=r.nextElementSibling; if(next) bundleArea.insertBefore(next, r); syncPanel(); } })); bundlePanel.appendChild(clone); }); updateCheckout(); }
+    function syncPanel(){ bundlePanel.innerHTML=''; Array.from(bundleArea.querySelectorAll('.bundle-row')).forEach(r=>{ const clone=r.cloneNode(true); // rewire remove
+        clone.querySelectorAll('button').forEach(b=>{ b.addEventListener('click', ()=>{ const name = clone.getAttribute('data-product'); const original = Array.from(bundleArea.querySelectorAll('.bundle-row')).find(rr=> rr.getAttribute('data-product')===name); if(!original) return; if(b.textContent.trim()==='Remove'){ original.remove(); clone.remove(); updateDashboard(); showToast('Removed'); } }); }); bundlePanel.appendChild(clone); }); }
+
+    function clearBundle(){ bundleArea.innerHTML=''; bundlePanel.innerHTML=''; bundleArea.innerHTML='<div class="muted">(empty)</div>'; updateDashboard(); }
+
+    // predictive analytics
+    function predictBundle(){ const rows = Array.from(bundleArea.querySelectorAll('.bundle-row')); if(!rows.length){ showToast('No items in bundle'); return; }
+      const totals = {focus:0,memory:0,mood:0,sleep:0,energy:0}; rows.forEach(r=>{ const name = r.getAttribute('data-product'); const a = assets.find(x=> x.name===name); const qty = parseInt(r.querySelector('.qty-input')?.value||1); if(a){ Object.keys(totals).forEach(k=> totals[k] += (a.impact[k]||0) * qty); } });
+      // normalize to 0-10
+      const max = 10 * rows.length;
+      const normalized = Object.fromEntries(Object.entries(totals).map(([k,v])=> [k, Math.min(10, Math.round((v/max)*10))]));
+      renderRadar(normalized); animateNeuralPaths(rows); $('#predictiveSheet').classList.remove('hidden'); $('#predictText').textContent = 'Projected improvements (0-10)'; }
+
+    function renderRadar(values){ const svg = $('#radarSVG'); svg.innerHTML=''; const metrics = ['focus','memory','mood','sleep','energy']; const cx=110, cy=110, r=80; // draw rings
+      for(let i=4;i>=0;i--){ const rr = (r/4)*i; const circle = document.createElementNS('http://www.w3.org/2000/svg','circle'); circle.setAttribute('cx',cx); circle.setAttribute('cy',cy); circle.setAttribute('r',rr); circle.setAttribute('fill','none'); circle.setAttribute('stroke','rgba(15,23,42,0.04)'); svg.appendChild(circle); }
+      const pts = metrics.map((m,i)=>{ const angle = (Math.PI*2/metrics.length)*i - Math.PI/2; const val = (values[m]||0)/10; const px = cx + Math.cos(angle)*r*val; const py = cy + Math.sin(angle)*r*val; return [px,py]; });
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path'); path.setAttribute('d', 'M'+pts.map(p=> p.join(',')).join(' L ')+' Z'); path.setAttribute('fill','rgba(99,102,241,0.12)'); path.setAttribute('stroke','rgba(99,102,241,0.6)'); path.setAttribute('stroke-width','2'); svg.appendChild(path);
+      pts.forEach((p,i)=>{ const t = document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x', p[0]); t.setAttribute('y', p[1]-8); t.setAttribute('font-size','10'); t.setAttribute('text-anchor','middle'); t.textContent = metrics[i]; svg.appendChild(t); }); }
+
+    function animateNeuralPaths(rows){ const canvas = $('#neuralCanvas'); canvas.innerHTML=''; // simple animated lines from thumbnails to center
+      const brain = document.createElement('div'); brain.style.position='absolute'; brain.style.right='12px'; brain.style.top='12px'; brain.innerHTML = '<svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" stroke="rgba(99,102,241,0.2)" fill="rgba(99,102,241,0.04)"/></svg>'; canvas.appendChild(brain);
+      rows.forEach((r,i)=>{ const name = r.getAttribute('data-product'); const node = document.createElement('div'); node.style.position='absolute'; node.style.left=(12 + i*60)+'px'; node.style.top='40px'; node.style.width='8px'; node.style.height='8px'; node.style.borderRadius='50%'; node.style.background='linear-gradient(90deg,var(--accent),var(--accent2))'; node.style.boxShadow='0 6px 18px rgba(99,102,241,0.12)'; canvas.appendChild(node); const line = document.createElement('div'); line.style.position='absolute'; line.style.left=(12 + i*60 + 4)+'px'; line.style.top='44px'; line.style.width='40px'; line.style.height='2px'; line.style.background='linear-gradient(90deg,var(--accent),var(--accent2))'; line.style.transformOrigin='left center'; line.style.transform='rotate(10deg)'; line.style.transition='transform .6s ease'; canvas.appendChild(line); setTimeout(()=>{ line.style.transform='rotate(-20deg) scaleX(1.8)'; }, 80 + i*60); }); }
 
     // cart functions
     function addToCart(asset, qty=1){ const idx = cart.findIndex(c=> c.name===asset.name); if(idx>=0){ cart[idx].qty += qty; } else { cart.push({name:asset.name, price:asset.price, priceStr:asset.priceStr, src:asset.src, qty:qty}); } persist(); renderCheckout(); updateCartCount(); }
@@ -294,61 +379,57 @@
 
     // saved bundles
     const savedList = $('#savedBundlesList');
-    function renderSaved(){ savedList.innerHTML=''; bundles.forEach((b,i)=>{ const el = document.createElement('div'); el.className='card-product'; el.style.justifyContent='space-between'; el.innerHTML = `<div><strong>${b.name}</strong><div class=\"muted\" style=\"font-size:12px\">${b.items.map(it=> it.name).join(', ')}</div></div><div class=\"saved-controls\"></div>`; const controls = el.querySelector('.saved-controls'); const load = document.createElement('button'); load.className='btn btn-ghost'; load.type='button'; load.textContent='Load'; load.addEventListener('click', ()=>{ // load into sidebar
-        bundleArea.innerHTML=''; b.items.forEach(it=>{ const asset = assets.find(a=> a.name===it.name); if(asset) addToBundle(asset, it.qty || 1); }); updateCheckout(); showToast('Loaded'); }); const del = document.createElement('button'); del.className='btn btn-ghost'; del.type='button'; del.textContent='Delete'; del.addEventListener('click', ()=>{ bundles.splice(i,1); persist(); renderSaved(); showToast('Deleted'); }); controls.appendChild(load); controls.appendChild(del); savedList.appendChild(el); }); }
+    function refreshSavedList(){ savedList.innerHTML=''; bundles.forEach((b,i)=>{ const el = document.createElement('div'); el.className='card-product'; el.style.justifyContent='space-between'; el.innerHTML = `<div><strong>${b.name}</strong><div class=\"muted\" style=\"font-size:12px\">${b.items.map(it=> it.name).join(', ')}</div></div><div class=\"saved-controls\"></div>`; const controls = el.querySelector('.saved-controls'); const load = document.createElement('button'); load.className='btn btn-ghost'; load.type='button'; load.textContent='Load'; load.addEventListener('click', ()=>{ bundleArea.innerHTML=''; b.items.forEach(it=>{ const asset = assets.find(a=> a.name===it.name); if(asset) addToBundle(asset, it.qty || 1); }); syncPanel(); updateDashboard(); showToast('Loaded'); }); const del = document.createElement('button'); del.className='btn btn-ghost'; del.type='button'; del.textContent='Delete'; del.addEventListener('click', ()=>{ bundles.splice(i,1); persist(); refreshSavedList(); showToast('Deleted'); }); controls.appendChild(load); controls.appendChild(del); savedList.appendChild(el); }); $('#savedCount').textContent = bundles.length; }
 
-    // optimize & save
+    // save bundle
+    $('#saveBundle').addEventListener('click', ()=>{ const rows = Array.from(bundleArea.querySelectorAll('.bundle-row')); if(!rows.length){ showToast('No items'); return; } const name = prompt('Bundle name','My Bundle'); if(!name) return; const payload = { name, items: rows.map(r=> ({ name: r.getAttribute('data-product'), qty: parseInt(r.querySelector('.qty-input')?.value||1) })) }; bundles.push(payload); persist(); refreshSavedList(); showToast('Saved'); });
+
+    // optimize & clear
     $('#optimizeBundle').addEventListener('click', ()=>{ const items = Array.from(bundleArea.querySelectorAll('.bundle-row')); items.sort((a,b)=> a.getAttribute('data-product').localeCompare(b.getAttribute('data-product'))); bundleArea.innerHTML=''; items.forEach(i=> bundleArea.appendChild(i)); syncPanel(); showToast('Optimized'); });
-    $('#saveBundle').addEventListener('click', ()=>{ const rows = Array.from(bundleArea.querySelectorAll('.bundle-row')); if(!rows.length){ showToast('No items'); return; } const name = prompt('Bundle name','My Bundle'); if(!name) return; const payload = { name, items: rows.map(r=> ({ name: r.getAttribute('data-product'), qty: parseInt(r.querySelector('.qty-input')?.value||1) })) }; bundles.push(payload); persist(); renderSaved(); showToast('Saved'); });
+    $('#clearBundle').addEventListener('click', ()=> clearBundle());
+    $('#predictBundle').addEventListener('click', ()=> predictBundle()); $('#predictBundleBtn').addEventListener('click', ()=>{ showPanel('tab-bundles'); setTimeout(()=> predictBundle(),200); });
 
-    // proceed checkout (demo)
-    $('#proceedCheckout').addEventListener('click', ()=>{ if(!cart.length){ showToast('Cart is empty'); return; } alert('Demo checkout — total: ' + $('#checkoutTotal').textContent); cart=[]; persist(); renderCheckout(); updateCartCount(); showToast('Order placed (demo)'); });
-    $('#clearCart').addEventListener('click', ()=>{ cart=[]; persist(); renderCheckout(); updateCartCount(); showToast('Cart cleared'); });
+    // rewards & VIP
+    function grantPoints(n){ const multiplier = vip==='Bronze'?1: vip==='Silver'?1.1: vip==='Gold'?1.25:1.5; points += Math.round(n * multiplier); persist(); updatePointsUI(); checkBadges(); }
+    function updatePointsUI(){ $('#pointsDisplay').textContent = points; }
+    function checkBadges(){ const badges = []; if(points>=50) badges.push('Explorer'); if(points>=150) badges.push('Optimizer'); if(points>=300) badges.push('Master'); const area = $('#badgesArea'); area.innerHTML=''; badges.forEach(b=>{ const el = document.createElement('span'); el.className='badge-icon'; el.textContent=b; area.appendChild(el); }); }
+    $('#upgradeVip').addEventListener('click', ()=>{ const tiers = ['Bronze','Silver','Gold','Platinum']; const idx = tiers.indexOf(vip); const next = tiers[Math.min(tiers.length-1, idx+1)]; if(next===vip){ showToast('Already top tier'); return; } vip = next; persist(); updatePointsUI(); showToast('Upgraded to '+vip); $('#vipTier').textContent = vip; });
+
+    // reaction game
+    let reactionTimer=null; let reactionStart=0; function startReaction(){ $('#reactionResult').textContent='Get ready...'; const wait = 800 + Math.random()*1600; setTimeout(()=>{ const circle = document.createElement('div'); circle.style.width='80px'; circle.style.height='80px'; circle.style.borderRadius='50%'; circle.style.background='linear-gradient(90deg,var(--accent),var(--accent2))'; circle.style.marginTop='12px'; circle.style.cursor='pointer'; circle.id='reactionCircle'; document.querySelector('#tab-dashboard .card-small').appendChild(circle); reactionStart = performance.now(); circle.addEventListener('click', ()=>{ const dt = performance.now() - reactionStart; circle.remove(); $('#reactionResult').textContent = 'Reaction: '+Math.round(dt)+' ms'; grantPoints(Math.max(1, Math.round(1000/dt))); showToast('Reaction score awarded'); }); }, wait); }
+    $('#startReaction').addEventListener('click', ()=> startReaction());
 
     // lightbox
-    function openProductModal(a){ const lb=$('#nb-lightbox'); $('#lightboxImg').src=a.src; $('#lightboxCaption').textContent = a.name + ' — ' + a.priceStr + '\n' + a.desc; lb.style.display='flex'; lb.setAttribute('aria-hidden','false'); const sheet = lb.querySelector('.lightbox-sheet'); let actions = sheet.querySelector('.lightbox-actions'); if(actions) actions.remove(); actions = document.createElement('div'); actions.className='lightbox-actions'; actions.style.display='flex'; actions.style.gap='8px'; actions.style.marginTop='8px'; const b1=document.createElement('button'); b1.className='btn btn-primary'; b1.type='button'; b1.textContent='Add to Bundle'; const b2=document.createElement('button'); b2.className='btn btn-ghost'; b2.type='button'; b2.textContent='Add to Cart'; b1.addEventListener('click', ()=>{ addToBundle(a); showToast('Added to bundle'); }); b2.addEventListener('click', ()=>{ addToCart(a,1); showToast('Added to cart'); }); actions.appendChild(b1); actions.appendChild(b2); sheet.appendChild(actions); }
+    function openProductModal(a){ const lb=$('#nb-lightbox'); $('#lightboxImg').src=a.src; $('#lightboxCaption').textContent = a.name + ' — ' + a.priceStr + '\n' + a.desc; lb.style.display='flex'; lb.setAttribute('aria-hidden','false'); const sheet = lb.querySelector('.lightbox-sheet'); let actions = sheet.querySelector('.lightbox-actions'); if(actions) actions.remove(); actions = document.createElement('div'); actions.className='lightbox-actions'; actions.style.display='flex'; actions.style.gap='8px'; actions.style.marginTop='8px'; const b1=document.createElement('button'); b1.className='btn btn-primary'; b1.type='button'; b1.textContent='Add to Bundle'; const b2=document.createElement('button'); b2.className='btn btn-ghost'; b2.type='button'; b2.textContent='Add to Cart'; b1.addEventListener('click', ()=>{ addToBundle(a); grantPoints(5); showToast('Added to bundle +5 pts'); }); b2.addEventListener('click', ()=>{ addToCart(a,1); grantPoints(10); showToast('Added to cart +10 pts'); }); actions.appendChild(b1); actions.appendChild(b2); sheet.appendChild(actions); }
     $('#lightboxClose').addEventListener('click', ()=>{ const lb=$('#nb-lightbox'); lb.style.display='none'; lb.setAttribute('aria-hidden','true'); });
 
-    // gallery and homepage
-    function renderHome(){ const home = $('#tab-home'); home.innerHTML = '';
-      const h2 = document.createElement('h2'); h2.className='section-title'; h2.textContent='NeuroBoutique — Where Science Meets Luxury'; home.appendChild(h2);
-      const p = document.createElement('p'); p.className='muted'; p.textContent='AI-curated brain wellness products, bundles, and tools. Discover featured picks and personalized recommendations.'; home.appendChild(p);
-      const hero = document.createElement('div'); hero.className='hero'; const visual = document.createElement('div'); visual.className='hero-visual'; const visImg = document.createElement('img'); visImg.src = assets[4].src; visImg.alt='Hero'; visual.appendChild(visImg); const side = document.createElement('div'); side.className='hero-side'; const concierge = document.createElement('div'); concierge.className='card-small'; const hcons = document.createElement('h4'); hcons.textContent='AI Concierge'; concierge.appendChild(hcons); const scons = document.createElement('div'); scons.className='muted'; scons.textContent = 'Welcome back — your Focus Score today is 72'; concierge.appendChild(scons); const featured = document.createElement('div'); featured.className='card-small'; const hfeat = document.createElement('h4'); hfeat.textContent='Featured Bundle'; featured.appendChild(hfeat); const sfeat = document.createElement('div'); sfeat.className='muted'; sfeat.textContent = 'Focus & Study Pack — NeuroFocus + Cogniva + NeuroTrainer'; featured.appendChild(sfeat); const btnWrap = document.createElement('div'); btnWrap.className='mt-12'; const of = document.createElement('button'); of.className='btn btn-primary'; of.type='button'; of.id='openFeatured'; of.textContent='View Bundle'; btnWrap.appendChild(of); featured.appendChild(btnWrap); side.appendChild(concierge); side.appendChild(featured); hero.appendChild(visual); hero.appendChild(side); home.appendChild(hero);
-      const h3 = document.createElement('h3'); h3.className='section-title'; h3.textContent='Top Picks'; home.appendChild(h3); const picks = document.createElement('div'); picks.className='catalog-grid'; picks.id='homePicks'; picks.style.gridTemplateColumns='repeat(3,1fr)'; home.appendChild(picks);
-      [0,1,5].forEach(i=>{ const a=assets[i]; const c=document.createElement('div'); c.className='card-product'; const img=document.createElement('img'); img.src=a.src; img.className='thumb'; img.alt=a.name; img.style.height='140px'; img.addEventListener('click', ()=> openProductModal(a)); c.appendChild(img); const info=document.createElement('div'); info.className='info'; info.innerHTML=`<div class=\"title\">${a.name}</div><div class=\"meta\"><span class=\"pill\">${a.badge}</span><span class=\"price\">${a.priceStr}</span></div>`; c.appendChild(info); const actions=document.createElement('div'); actions.className='actions'; const btn=document.createElement('button'); btn.className='btn btn-primary'; btn.type='button'; btn.textContent='Quick Add'; btn.addEventListener('click', (e)=>{ e.stopPropagation(); addToBundle(a); showToast('Added'); }); actions.appendChild(btn); c.appendChild(actions); picks.appendChild(c); });
-      $('#openFeatured').addEventListener('click', ()=>{ showPanel('tab-bundles'); showToast('Opened bundle editor'); }); }
+    // home render
+    function renderHome(){ const home = $('#tab-home'); const picks = $('#homePicks'); picks.innerHTML=''; [0,1,5].forEach(i=>{ const a=assets[i]; const c=document.createElement('div'); c.className='card-product'; const glow = document.createElement('div'); glow.className='card-glow'; c.appendChild(glow); const img=document.createElement('img'); img.src=a.src; img.className='thumb'; img.alt=a.name; img.style.height='140px'; img.addEventListener('click', ()=> openProductModal(a)); c.appendChild(img); const info=document.createElement('div'); info.className='info'; info.innerHTML=`<div class=\"title\">${a.name}</div><div class=\"meta\"><span class=\"pill\">${a.badge}</span><span class=\"price\">${a.priceStr}</span></div>`; c.appendChild(info); const actions=document.createElement('div'); actions.className='actions'; const btn=document.createElement('button'); btn.className='btn btn-primary'; btn.type='button'; btn.textContent='Quick Add'; btn.addEventListener('click', (e)=>{ e.stopPropagation(); addToBundle(a); grantPoints(5); showToast('Added'); }); actions.appendChild(btn); c.appendChild(actions); picks.appendChild(c); }); }
 
-    // gallery render
     function renderGallery(){ if(!galleryGrid) return; galleryGrid.innerHTML=''; assets.forEach(a=>{ const g=document.createElement('figure'); g.className='gallery-item'; const img = document.createElement('img'); img.src=a.src; img.alt=a.name; img.addEventListener('click', ()=> openProductModal(a)); g.appendChild(img); galleryGrid.appendChild(g); }); }
 
-    // seed and init
+    // init seed
     function seedDemo(){ if(!bundles.length){ bundles = [{ name:'Focus Pack', items:[ {name:'NeuroFocus Capsules', qty:1}, {name:'Cogniva Gummies', qty:1}, {name:'NeuroTrainer Handheld', qty:1} ] }]; }
-      if(!cart.length) { cart = []; }
+      if(!cart.length) cart = [];
       persist(); }
 
-    function init(){ seedDemo(); renderBadgeFilters(); renderHome(); renderCatalog(); renderSaved(); renderGallery(); syncPanel(); renderCheckout(); updateCartCount(); renderSaved(); // default to catalog
+    function updateDashboard(){ $('#itemsInBundle').textContent = bundleArea.querySelectorAll('.bundle-row').length; updatePointsUI(); refreshSavedList(); renderCheckout(); updateCartCount(); checkBadges(); }
+
+    function init(){ seedDemo(); renderBadgeFilters(); renderHome(); renderCatalog(); renderSaved(); renderGallery(); syncPanel(); renderCheckout(); updateCartCount(); renderSaved(); updateDashboard(); // default to catalog
       showPanel('tab-catalog');
-      // wire sort and search
       $('#catalogSort').addEventListener('change', (e)=>{ const s = e.target.value; const activeChip = document.querySelector('.chip.active'); const badge = activeChip && activeChip.textContent !== 'All' ? activeChip.textContent : null; renderCatalog($('.site-search').value, badge, s); });
       $('.site-search').addEventListener('input', (e)=>{ const activeChip = document.querySelector('.chip.active'); const badge = activeChip && activeChip.textContent !== 'All' ? activeChip.textContent : null; renderCatalog(e.target.value, badge, $('#catalogSort').value); });
-      // header cart click opens checkout
-      document.querySelector('.cart-btn').addEventListener('click', ()=>{ showPanel('tab-checkout'); });
-      // accessible keyboard
-      document.addEventListener('keydown', (e)=>{ if(e.key==='/' ){ e.preventDefault(); $('.site-search').focus(); } if(e.key==='Escape'){ const lb = $('#nb-lightbox'); if(lb && lb.style.display==='flex') { lb.style.display='none'; } } });
-    }
+      document.querySelector('.cart-btn').addEventListener('click', ()=> showPanel('tab-checkout'));
+      $('#openFeatured').addEventListener('click', ()=>{ showPanel('tab-bundles'); });
+      $('#proceedCheckout').addEventListener('click', ()=>{ if(!cart.length){ showToast('Cart is empty'); return; } alert('Demo checkout — total: ' + $('#checkoutTotal').textContent); cart=[]; persist(); renderCheckout(); updateCartCount(); showToast('Order placed (demo)'); });
+      $('#clearCart').addEventListener('click', ()=>{ cart=[]; persist(); renderCheckout(); updateCartCount(); showToast('Cart cleared'); });
+      $('#startReaction')?.addEventListener('click', ()=> startReaction());
+      renderHome(); renderCatalog(); renderSaved(); renderGallery(); updateDashboard(); }
 
     init();
 
-    // helpers
-    function renderSaved(){ savedList.innerHTML=''; bundles.forEach((b,i)=>{ const el = document.createElement('div'); el.className='card-product'; el.style.justifyContent='space-between'; el.innerHTML = `<div><strong>${b.name}</strong><div class=\"muted\" style=\"font-size:12px\">${b.items.map(it=> it.name).join(', ')}</div></div><div class=\"saved-controls\"></div>`; const controls = el.querySelector('.saved-controls'); const load = document.createElement('button'); load.className='btn btn-ghost'; load.type='button'; load.textContent='Load'; load.addEventListener('click', ()=>{ bundleArea.innerHTML=''; b.items.forEach(it=>{ const asset = assets.find(a=> a.name===it.name); if(asset) addToBundle(asset, it.qty || 1); }); syncPanel(); updateCheckout(); showToast('Loaded'); }); const del = document.createElement('button'); del.className='btn btn-ghost'; del.type='button'; del.textContent='Delete'; del.addEventListener('click', ()=>{ bundles.splice(i,1); persist(); renderSaved(); showToast('Deleted'); }); controls.appendChild(load); controls.appendChild(del); savedList.appendChild(el); }); }
-
-    function updateCheckout(){ // compute summary from bundle area for display in checkout summary and dashboard
-      const rows = Array.from(bundleArea.querySelectorAll('.bundle-row')); const names = rows.map(r=> r.getAttribute('data-product')); const qtys = rows.map(r=> parseInt(r.querySelector('.qty-input')?.value||1)); const checkoutSummary = $('#checkoutTotal'); // not used directly here
-      // keep checkout tab cart separate; update dashboard
-      renderDashboard(); }
-
-    function renderDashboard(){ const dash = $('#tab-dashboard'); if(!dash) return; const savedCount = bundles.length; const itemsCount = bundleArea.querySelectorAll('.bundle-row').length; dash.innerHTML = '<h3 class="section-title">Dashboard</h3><div style="display:flex;gap:12px"><div style="flex:1;padding:12px;border-radius:10px;background:var(--card);box-shadow:var(--shadow)"><div style="font-weight:700">Saved Bundles</div><div style="font-size:24px">'+savedCount+'</div></div><div style="flex:1;padding:12px;border-radius:10px;background:var(--card);box-shadow:var(--shadow)"><div style="font-weight:700">Items in Bundle</div><div style="font-size:24px">'+itemsCount+'</div></div></div>'; }
-
+    // utility exposures for other handlers
+    window.addToBundle = addToBundle; window.addToCart = addToCart; window.grantPoints = grantPoints;
   })();
   </script>
 </body>
