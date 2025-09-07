@@ -1157,6 +1157,141 @@ body {
     new Chart(ctx,{ type:'line', data:{ labels:['Mon','Tue','Wed','Thu','Fri'], datasets:[{ label:'Score', data:[65,70,72,68,73], borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,0.08)', fill:true }] }, options:{ responsive:true, maintainAspectRatio:false } });
   }catch(e){console.warn('mini chart init failed',e)}
 
+  // --- Advanced features: optimize, save bundles, lightbox carousel, AR preview ---
+  const optimizeBtn = document.getElementById('optimizeBundle');
+  const saveBtn = document.getElementById('saveBundle');
+  const savedList = document.getElementById('savedBundlesList');
+  const arBtn = document.getElementById('arPreview');
+  const arModal = document.getElementById('ar-modal');
+  const arClose = document.getElementById('arClose');
+  const arPreviewContent = document.getElementById('arPreviewContent');
+
+  // basic product value map used by optimizer
+  const valueMap = {
+    'NeuroFocus Capsules': 24,
+    'Cogniva Gummies': 18,
+    'CalmNeuro Drops': 15,
+    'NeuroTrainer Handheld': 20,
+    'MindWave EEG Headband': 20,
+    'NeuroCharge': 12,
+    'HappyMind Chews': 10,
+    'SleepSync Eye Mask': 14
+  };
+
+  function getBundleItems(){
+    return Array.from(bundleContents.querySelectorAll('.bundle-item')).map(b=>({name:b.getAttribute('data-product'), node:b}));
+  }
+
+  function optimizeBundle(){
+    const items = getBundleItems();
+    if(items.length<=1) return;
+    // sort by value desc
+    items.sort((a,b)=> (valueMap[b.name]||0) - (valueMap[a.name]||0));
+    // re-render
+    bundleContents.innerHTML='';
+    items.forEach(it=> bundleContents.appendChild(it.node));
+    updateCheckout();
+  }
+
+  function saveBundle(){
+    const items = getBundleItems().map(i=>i.name);
+    if(items.length===0){ alert('No items to save'); return; }
+    const name = prompt('Name this bundle', 'My Bundle');
+    if(!name) return;
+    const saved = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]');
+    saved.push({name, items});
+    localStorage.setItem('nb_saved_bundles', JSON.stringify(saved));
+    renderSavedBundles();
+  }
+
+  function renderSavedBundles(){
+    savedList.innerHTML='';
+    const saved = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]');
+    saved.forEach((b, idx)=>{
+      const el = document.createElement('div');
+      el.className='product-card-compact';
+      el.style.justifyContent='space-between';
+      el.innerHTML = `<div><strong>${b.name}</strong><div style="font-size:12px;color:var(--text-secondary)">${b.items.join(', ')}</div></div><div style="display:flex;gap:6px"><button class="export-button" data-load="${idx}">Load</button><button class="export-button" data-delete="${idx}">Delete</button></div>`;
+      savedList.appendChild(el);
+    });
+    // attach handlers
+    savedList.querySelectorAll('[data-load]').forEach(btn=> btn.addEventListener('click', (e)=>{
+      const idx = parseInt(btn.getAttribute('data-load'));
+      const saved = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]');
+      const b = saved[idx];
+      if(!b) return;
+      // clear current
+      bundleContents.innerHTML='';
+      // add items from mapping
+      b.items.forEach(name=>{
+        // find asset
+        const found = assets.find(a=>a.name===name);
+        if(found){
+          const bundleItem = document.createElement('div');
+          bundleItem.className='bundle-item';
+          bundleItem.setAttribute('data-product', name);
+          const img = document.createElement('img'); img.src = found.src; img.className='product-thumb'; img.style.width='48px'; img.style.height='48px'; img.style.borderRadius='6px'; img.style.objectFit='cover';
+          const label = document.createElement('div'); label.style.flex='1'; label.style.margin='0 8px'; label.textContent = name;
+          const removeBtn = document.createElement('button'); removeBtn.className='export-button'; removeBtn.textContent='Remove'; removeBtn.addEventListener('click', ()=>{ bundleItem.remove(); updateCheckout(); });
+          bundleItem.appendChild(img); bundleItem.appendChild(label); bundleItem.appendChild(removeBtn);
+          bundleContents.appendChild(bundleItem);
+        }
+      });
+      updateCheckout();
+      activateTab('tab-bundles');
+    }));
+
+    savedList.querySelectorAll('[data-delete]').forEach(btn=> btn.addEventListener('click', ()=>{
+      const idx = parseInt(btn.getAttribute('data-delete'));
+      const saved = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]');
+      saved.splice(idx,1);
+      localStorage.setItem('nb_saved_bundles', JSON.stringify(saved));
+      renderSavedBundles();
+    }));
+  }
+
+  optimizeBtn && optimizeBtn.addEventListener('click', optimizeBundle);
+  saveBtn && saveBtn.addEventListener('click', saveBundle);
+
+  // AR preview: simple placeholder showing thumbnails of current bundle
+  arBtn && arBtn.addEventListener('click', ()=>{
+    arPreviewContent.innerHTML = '';
+    const items = getBundleItems();
+    if(items.length===0){ arPreviewContent.textContent='No items in bundle to preview.'; } else {
+      items.forEach(it=>{
+        const img = document.createElement('img'); img.src = (it.node.querySelector('img') || {}).src || ''; img.style.width='80px'; img.style.height='80px'; img.style.objectFit='cover'; img.style.borderRadius='6px'; arPreviewContent.appendChild(img);
+      });
+    }
+    arModal.hidden = false;
+  });
+  arClose && arClose.addEventListener('click', ()=> arModal.hidden = true);
+
+  // Lightbox carousel prev/next
+  const lightboxPrev = document.getElementById('lightboxPrev');
+  const lightboxNext = document.getElementById('lightboxNext');
+  let galleryImgs = [];
+  function refreshGalleryList(){ galleryImgs = Array.from(document.querySelectorAll('.gallery-item img')).map(i=>i.src); }
+  refreshGalleryList();
+  let currentIndex = -1;
+  document.addEventListener('click', (e)=>{
+    const img = e.target.closest('.gallery-item img, .product-thumb');
+    if(img){
+      refreshGalleryList();
+      currentIndex = galleryImgs.indexOf(img.src);
+      lightboxImg.src = img.src; lightboxCaption.textContent = img.getAttribute('data-caption') || img.alt || '';
+      document.getElementById('nb-lightbox').hidden = false;
+    }
+  });
+  function showIndex(i){ if(i<0) i = galleryImgs.length-1; if(i>=galleryImgs.length) i=0; currentIndex = i; lightboxImg.src = galleryImgs[currentIndex]; const el = document.querySelector(`.gallery-item img[src="${galleryImgs[currentIndex]}"]`); lightboxCaption.textContent = el ? (el.getAttribute('data-caption')||el.alt) : ''; }
+  lightboxPrev && lightboxPrev.addEventListener('click', ()=> showIndex(currentIndex-1));
+  lightboxNext && lightboxNext.addEventListener('click', ()=> showIndex(currentIndex+1));
+  document.addEventListener('keydown', (e)=>{
+    const lb = document.getElementById('nb-lightbox'); if(lb && !lb.hidden){ if(e.key==='ArrowLeft') showIndex(currentIndex-1); if(e.key==='ArrowRight') showIndex(currentIndex+1); if(e.key==='Escape'){ lb.hidden=true; } }
+  });
+
+  // initial render of saved bundles
+  renderSavedBundles();
+
 })();
 </script>
 
