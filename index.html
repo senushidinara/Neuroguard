@@ -1098,36 +1098,13 @@ body {
   const productsList = document.getElementById('draggableProducts');
   const bundleDropzone = document.getElementById('bundleDropzone');
   const bundleContents = document.getElementById('bundleContents');
-  function allowDrop(ev){ ev.preventDefault(); }
-  function onDrop(ev){
-    ev.preventDefault();
-    const id = ev.dataTransfer.getData('text/plain');
-    const sourceEl = document.getElementById(id);
-    if(!sourceEl) { showToast('Could not add item to bundle'); return; }
-
-    // create a clean bundle item
-    const bundleItem = document.createElement('div');
-    bundleItem.className = 'bundle-item';
-    bundleItem.setAttribute('data-product', sourceEl.getAttribute('data-product') || sourceEl.textContent.trim());
-
-    const thumb = sourceEl.querySelector('img');
-    if(thumb){
-      const img = document.createElement('img'); img.src = thumb.src; img.className = 'product-thumb'; img.style.width='48px'; img.style.height='48px'; img.style.objectFit='cover'; img.style.borderRadius='6px';
-      bundleItem.appendChild(img);
-    }
-
-    const label = document.createElement('div'); label.style.flex='1'; label.style.margin='0 8px'; label.textContent = bundleItem.getAttribute('data-product');
-    bundleItem.appendChild(label);
-
-    const removeBtn = document.createElement('button'); removeBtn.className='export-button'; removeBtn.textContent='Remove'; removeBtn.addEventListener('click', ()=>{ bundleItem.remove(); updateCheckout(); showToast('Removed from bundle'); });
-    bundleItem.appendChild(removeBtn);
-
-    bundleContents.appendChild(bundleItem);
-    updateCheckout();
-    showToast('Added to bundle');
-  }
-  bundleDropzone.addEventListener('dragover', allowDrop);
-  bundleDropzone.addEventListener('drop', onDrop);
+  // Drag-and-drop removed: bundle additions are now done via buttons for reliability.
+  // If needed later, we can re-add drag & drop, but for now keep button-only flow.
+  // No-op placeholders to keep references
+  function allowDrop(ev){ /* removed */ }
+  function onDrop(ev){ /* removed */ }
+  // Ensure bundleDropzone does not listen for drop events
+  try { bundleDropzone && bundleDropzone.removeEventListener('drop', onDrop); bundleDropzone && bundleDropzone.removeEventListener('dragover', allowDrop); } catch(e) { /* ignore */ }
 
   function updateCheckout(){
     const items = Array.from(bundleContents.querySelectorAll('.bundle-item'));
