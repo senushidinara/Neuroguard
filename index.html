@@ -1,1559 +1,557 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeuroGuard Cognitive Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-  import { getDatabase, ref, push, set, get, onValue } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyD46r68uu1HtgbvHydIBhFxAcQOCNTtWNM",
-    authDomain: "neuroguard-ba100.firebaseapp.com",
-    projectId: "neuroguard-ba100",
-    storageBucket: "neuroguard-ba100.firebasestorage.app",
-    messagingSenderId: "665637579760",
-    appId: "1:665637579760:web:e452a55d2836474ac54b35",
-    measurementId: "G-EJ05T3717P"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  window.firebaseDB = db;
-</script>
-<style>
-:root {
-  --primary-color: #6366f1;
-  --secondary-color: #8b5cf6;
-  --success-color: #10b981;
-  --warning-color: #f59e0b;
-  --danger-color: #ef4444;
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8fafc;
-  --bg-tertiary: #f1f5f9;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --border-color: #e2e8f0;
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  --radius: 12px;
-  --radius-lg: 16px;
-}
-
-[data-theme="dark"] {
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --border-color: #475569;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: var(--text-primary);
-  min-height: 100vh;
-  transition: all 0.3s ease;
-}
-
-.main-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 20px;
-  display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: 20px;
-  min-height: 100vh;
-}
-
-.dashboard-panel {
-  background: var(--bg-primary);
-  border-radius: var(--radius-lg);
-  padding: 30px;
-  box-shadow: var(--shadow-lg);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.sidebar-panel {
-  background: var(--bg-primary);
-  border-radius: var(--radius-lg);
-  padding: 30px;
-  box-shadow: var(--shadow-lg);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  height: fit-content;
-  position: sticky;
-  top: 20px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-}
-
-.logo-section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.logo-icon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 18px;
-}
-
-.dashboard-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.theme-toggle {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: var(--text-secondary);
-}
-
-.theme-toggle:hover {
-  background: var(--bg-tertiary);
-}
-
-.input-section {
-  display: grid;
-  gap: 25px;
-  margin-bottom: 30px;
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.input-label {
-  font-weight: 600;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.input-label i {
-  color: var(--primary-color);
-  width: 16px;
-}
-
-.slider-container {
-  position: relative;
-  margin: 10px 0;
-}
-
-.slider-input {
-  width: 100%;
-  height: 8px;
-  border-radius: 4px;
-  background: var(--bg-secondary);
-  outline: none;
-  -webkit-appearance: none;
-  appearance: none;
-  cursor: pointer;
-}
-
-.slider-input::-webkit-slider-thumb {
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--primary-color);
-  cursor: pointer;
-  border: 3px solid var(--bg-primary);
-  box-shadow: var(--shadow);
-}
-
-.slider-input::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--primary-color);
-  cursor: pointer;
-  border: 3px solid var(--bg-primary);
-  box-shadow: var(--shadow);
-}
-
-.slider-display {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 5px;
-}
-
-.slider-value {
-  font-weight: 600;
-  color: var(--primary-color);
-  background: var(--bg-secondary);
-  padding: 4px 8px;
-  border-radius: 6px;
-  min-width: 40px;
-  text-align: center;
-}
-
-.slider-range {
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.medication-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius);
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
-
-.medication-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.submit-button {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  color: white;
-  border: none;
-  padding: 16px 24px;
-  border-radius: var(--radius);
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  margin-top: 20px;
-}
-
-.submit-button:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-.submit-button:active {
-  transform: translateY(0);
-}
-
-.submit-button.loading {
-  pointer-events: none;
-  opacity: 0.7;
-}
-
-.score-display {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.main-score {
-  font-size: 48px;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 10px;
-}
-
-.score-label {
-  font-size: 16px;
-  color: var(--text-secondary);
-  margin-bottom: 20px;
-}
-
-.subdomain-scores {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-  margin-bottom: 30px;
-}
-
-.subdomain-item {
-  background: var(--bg-secondary);
-  padding: 15px;
-  border-radius: var(--radius);
-  text-align: center;
-}
-
-.subdomain-value {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--primary-color);
-}
-
-.subdomain-label {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-top: 5px;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background: var(--bg-secondary);
-  border-radius: 4px;
-  overflow: hidden;
-  margin: 5px 0;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-  border-radius: 4px;
-  transition: width 0.8s ease;
-  width: 0%;
-}
-
-.recommendations {
-  background: var(--bg-secondary);
-  padding: 20px;
-  border-radius: var(--radius);
-  margin-bottom: 20px;
-}
-
-.recommendations h3 {
-  color: var(--text-primary);
-  margin-bottom: 15px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.recommendation-item {
-  background: var(--bg-primary);
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  border-left: 4px solid var(--primary-color);
-}
-
-.recommendation-item:last-child {
-  margin-bottom: 0;
-}
-
-.chart-container {
-  background: var(--bg-secondary);
-  padding: 20px;
-  border-radius: var(--radius);
-  margin-bottom: 20px;
-  height: 300px;
-}
-
-.chart-tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.chart-tab {
-  padding: 8px 16px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 14px;
-}
-
-.chart-tab.active {
-  background: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
-}
-
-.gamification {
-  background: var(--bg-secondary);
-  padding: 20px;
-  border-radius: var(--radius);
-}
-
-.badges-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.badge-item {
-  background: var(--bg-primary);
-  padding: 10px;
-  border-radius: 8px;
-  text-align: center;
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
-}
-
-.badge-item.earned {
-  border-color: var(--success-color);
-  background: rgba(16, 185, 129, 0.1);
-}
-
-.badge-icon {
-  font-size: 20px;
-  margin-bottom: 5px;
-}
-
-.badge-label {
-  font-size: 10px;
-  color: var(--text-secondary);
-}
-
-.alert-banner {
-  padding: 12px 16px;
-  border-radius: var(--radius);
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 500;
-}
-
-.alert-critical {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--danger-color);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-.alert-warning {
-  background: rgba(245, 158, 11, 0.1);
-  color: var(--warning-color);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-}
-
-.alert-success {
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--success-color);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.stat-item {
-  background: var(--bg-secondary);
-  padding: 15px;
-  border-radius: var(--radius);
-  text-align: center;
-}
-
-.stat-value {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--primary-color);
-}
-
-.stat-label {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-top: 5px;
-}
-
-.export-buttons {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.export-button {
-  padding: 8px 16px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 14px;
-  color: var(--text-primary);
-  text-decoration: none;
-}
-
-.export-button:hover {
-  background: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
-}
-
-@media (max-width: 1024px) {
-  .main-container {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  
-  .sidebar-panel {
-    position: static;
-  }
-}
-
-@media (max-width: 768px) {
-  .main-container {
-    padding: 10px;
-  }
-  
-  .dashboard-panel,
-  .sidebar-panel {
-    padding: 20px;
-  }
-  
-  .subdomain-scores {
-    grid-template-columns: 1fr;
-  }
-  
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.tooltip {
-  position: relative;
-  cursor: help;
-}
-
-.tooltip::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 125%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.9);
-  color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-  z-index: 1000;
-}
-
-.tooltip:hover::after {
-  opacity: 1;
-}
-
-.fade-in {
-  animation: fadeIn 0.5s ease-in;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.bounce {
-  animation: bounce 0.6s ease;
-}
-
-@keyframes bounce {
-  0%, 20%, 53%, 80%, 100% { transform: translate3d(0, 0, 0); }
-  40%, 43% { transform: translate3d(0, -10px, 0); }
-  70% { transform: translate3d(0, -5px, 0); }
-  90% { transform: translate3d(0, -2px, 0); }
-}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NeuroBoutique — Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#eef6ff; /* softer background */
+      --card:#ffffff; --muted:#55607a; --accent:#4f46e5; --accent2:#7c3aed; --radius:14px;
+      --shadow: 0 10px 30px rgba(15,23,42,0.10);
+      --header-height:76px;
+      --glass: rgba(255,255,255,0.6);
+      --glass-2: rgba(255,255,255,0.85);
+    }
+
+    /* BASE */
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;color:#081028;background:linear-gradient(180deg,var(--bg) 0%, #f8fafc 100%);}
+    body{padding-top:var(--header-height);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+
+    /* Header */
+    .site-header{position:fixed;left:0;right:0;top:0;height:var(--header-height);z-index:80;display:flex;align-items:center;background:linear-gradient(180deg,var(--glass),transparent);backdrop-filter:blur(8px);border-bottom:1px solid rgba(10,20,40,0.05)}
+    .site-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:18px;padding:0 22px;width:100%}
+    .brand{font-weight:800;font-size:20px;color:var(--accent);letter-spacing:0.6px;text-transform:uppercase}
+
+    .site-menu{display:flex;gap:10px;margin-left:18px}
+    .site-menu a{padding:8px 14px;border-radius:12px;text-decoration:none;color:var(--muted);font-weight:700;transition:all .18s ease;letter-spacing:0.2px;position:relative}
+    .site-menu a:hover{background:rgba(79,70,229,0.08);color:var(--accent);transform:translateY(-2px)}
+    .site-menu a.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 8px 30px rgba(79,70,229,0.12)}
+    .site-menu a.active::after{content:'';position:absolute;left:12px;right:12px;bottom:-8px;height:6px;border-radius:6px;background:linear-gradient(90deg,rgba(124,58,237,0.6),rgba(99,102,241,0.4));filter:blur(8px);opacity:0.95}
+
+    .site-actions{margin-left:auto;display:flex;gap:12px;align-items:center}
+    .site-search{padding:10px 12px;border-radius:12px;border:none;background:linear-gradient(180deg,#fff,#fbfdff);box-shadow:0 6px 18px rgba(15,23,42,0.04);min-width:260px}
+    .site-search:focus{outline:3px solid rgba(99,102,241,0.12)}
+
+    .cart-btn{position:relative;background:transparent;border-radius:10px;padding:8px}
+    .cart-btn:hover{transform:translateY(-2px)}
+    .cart-count{position:absolute;top:-6px;right:-8px;background:var(--accent2);color:#fff;border-radius:999px;padding:4px 7px;font-size:12px;font-weight:800}
+
+    /* Layout */
+    .container{max-width:1200px;margin:26px auto;display:grid;grid-template-columns:1fr 360px;gap:24px;padding:0 22px;align-items:start}
+    .panel{background:linear-gradient(180deg,rgba(255,255,255,0.9),var(--card));border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;border:1px solid rgba(10,20,40,0.03);overflow:visible}
+
+    /* Headings & text */
+    .section-title{margin-top:0;font-weight:800;font-size:20px;color:#071033;letter-spacing:0.2px}
+    h3.section-title{font-size:18px}
+    p, .muted{color:var(--muted);line-height:1.45}
+    .muted{color:rgba(8,16,40,0.6)}
+
+    /* Catalog */
+    .catalog-controls{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+    .chip{padding:8px 12px;border-radius:999px;background:#fff;border:1px solid rgba(10,20,40,0.04);cursor:pointer;font-weight:800;color:var(--muted);box-shadow:0 6px 14px rgba(15,23,42,0.03)}
+    .chip.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 12px 30px rgba(79,70,229,0.12)}
+
+    .catalog-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+    .card-product{display:flex;gap:14px;align-items:center;padding:14px;border-radius:14px;background:linear-gradient(180deg,#fff,#f7fbff);border:1px solid rgba(10,20,40,0.03);transition:transform .24s cubic-bezier(.2,.8,.2,1), box-shadow .24s}
+    .card-product:hover{transform:translateY(-8px) scale(1.01);box-shadow:0 18px 40px rgba(10,20,40,0.12)}
+    .card-glow{position:absolute;inset:0;border-radius:14px;pointer-events:none;background:radial-gradient(circle at 20% 20%, rgba(124,58,237,0.06), transparent 20%), radial-gradient(circle at 80% 80%, rgba(99,102,241,0.04), transparent 25%);opacity:0;transition:opacity .25s}
+    .card-product:hover .card-glow{opacity:1}
+
+    .thumb{width:120px;height:120px;object-fit:cover;border-radius:12px;flex-shrink:0;box-shadow:0 8px 26px rgba(10,20,40,0.06)}
+    .info{flex:1}
+    .title{font-weight:800;color:#071033;font-size:15px;letter-spacing:0.2px}
+    .meta{display:flex;gap:8px;align-items:center;margin-top:6px}
+    .pill{background:linear-gradient(90deg,var(--accent2),var(--accent));color:#fff;padding:6px 10px;border-radius:999px;font-weight:800;font-size:12px}
+    .price{font-weight:900;color:var(--accent);margin-left:8px}
+    .actions{display:flex;flex-direction:column;gap:10px;margin-left:12px}
+    .btn{padding:10px 14px;border-radius:12px;border:none;cursor:pointer;font-weight:800;letter-spacing:0.4px;position:relative;overflow:hidden;background-clip:padding-box}
+    .btn-primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 10px 30px rgba(99,102,241,0.12)}
+    .btn-ghost{background:#fff;border:1px solid rgba(10,20,40,0.06);color:var(--muted)}
+    .btn:hover{transform:translateY(-3px)}
+    .btn:focus{outline:none;box-shadow:0 8px 30px rgba(124,58,237,0.18), inset 0 1px 0 rgba(255,255,255,0.1)}
+    .btn:active{transform:translateY(-1px) scale(.995)}
+
+    /* Sidebar */
+    .sidebar{position:relative}
+    .sidebar .sidebar-title{font-weight:900;margin-bottom:12px;color:#071033}
+    .bundle-area{min-height:140px;padding:12px;border-radius:12px;background:linear-gradient(180deg,#fbfcff,#f7fbff);border:1px dashed rgba(10,20,40,0.03);display:flex;flex-direction:column;gap:10px}
+    .bundle-row{display:flex;gap:10px;align-items:center;padding:10px;background:linear-gradient(180deg,#fff,#fbfdff);border-radius:10px;border:1px solid rgba(10,20,40,0.03)}
+    .bundle-row img{width:56px;height:56px;border-radius:8px;object-fit:cover}
+    .bundle-row .bundle-label{flex:1;font-weight:700}
+    .qty-input{width:72px;padding:6px;border-radius:8px;border:1px solid rgba(10,20,40,0.05)}
+
+    .sidebar.sticky{position:sticky;top:calc(var(--header-height) + 16px);align-self:start}
+
+    /* Predictive & Gamification */
+    .predictive-sheet{padding:14px;border-radius:12px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid rgba(10,20,40,0.03);box-shadow:0 12px 30px rgba(10,20,40,0.06);margin-top:12px}
+    .badge-icon{display:inline-block;padding:8px 10px;border-radius:8px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;font-weight:800;margin-right:6px}
+
+    /* Lightbox and AR modal */
+    .lightbox-overlay{display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:rgba(6,10,24,0.6);z-index:9998}
+    .lightbox-sheet{background:linear-gradient(180deg,#fff,#fbfdff);padding:14px;border-radius:12px;max-width:92%;max-height:84%;overflow:auto;box-shadow:0 20px 60px rgba(10,20,40,0.12)}
+    .lightbox-img{width:100%;height:auto;border-radius:10px;display:block;margin-bottom:10px}
+    .lightbox-caption{color:var(--muted);white-space:pre-wrap}
+
+    /* Toasts */
+    #nb-toast-container{position:fixed;right:22px;bottom:22px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end}
+    .toast{transition:opacity .25s ease; padding:10px 14px; border-radius:10px; font-weight:700}
+
+    /* Utilities */
+    .hidden{display:none !important}
+
+    @media (max-width:1024px){.container{grid-template-columns:1fr;}.gallery-grid{grid-template-columns:repeat(2,1fr)}.catalog-grid{grid-template-columns:1fr}.hero-side{width:auto}.site-inner{padding:0 12px}}
+  </style>
 </head>
 <body>
-
-<div class="main-container">
-  <div class="dashboard-panel">
-    <div class="header">
-      <div class="logo-section">
-        <div class="logo-icon">
-          <i class="fas fa-brain"></i>
-        </div>
-        <h1 class="dashboard-title">NeuroGuard Dashboard</h1>
+  <header class="site-header">
+    <div class="site-inner">
+      <div class="brand">NeuroBoutique</div>
+      <nav class="site-menu" aria-label="Main navigation">
+        <a href="#" data-target="tab-home">Home</a>
+        <a href="#" data-target="tab-catalog">Catalog</a>
+        <a href="#" data-target="tab-bundles">Bundles</a>
+        <a href="#" data-target="tab-vip">VIP</a>
+        <a href="#" data-target="tab-checkout">Checkout</a>
+        <a href="#" data-target="tab-dashboard">Dashboard</a>
+        <a href="#" data-target="tab-gallery">Gallery</a>
+      </nav>
+      <div class="site-actions">
+        <input class="site-search" type="search" placeholder="Search products" aria-label="Search">
+        <button class="btn btn-ghost cart-btn" aria-label="Cart"><i class="fas fa-shopping-cart"></i><span id="cartCount" class="cart-count" aria-hidden="true">0</span></button>
       </div>
-      <button class="theme-toggle" onclick="toggleTheme()">
-        <i class="fas fa-moon"></i>
-      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="panel main-wrap">
+      <div id="mainPanels">
+        <section id="tab-home" class="hidden">
+          <h2 class="section-title">NeuroBoutique — Where Science Meets Luxury</h2>
+          <p class="muted">Personalized brain wellness products curated by AI. Use Catalog to browse and create bundles on the right.</p>
+          <div class="hero">
+            <div class="hero-visual">
+              <img src="https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F40d0038f73dd4462a7febf4cef6c55ae?format=webp&width=1200" alt="Hero" style="width:100%;height:260px;object-fit:cover;border-radius:12px;box-shadow:0 20px 60px rgba(124,58,237,0.08)">
+            </div>
+            <div class="hero-side">
+              <div class="card-small" id="aiConcierge">
+                <h4>AI Concierge</h4>
+                <div class="muted" id="conciergeText">Welcome back — your Focus Score today is <strong id="focusScore">72</strong></div>
+                <div class="mt-12">
+                  <button id="runAnalysis" class="btn btn-primary" type="button">Analyze my brain</button>
+                </div>
+                <div class="mt-12" id="conciergeRecommendations"></div>
+              </div>
+              <div class="card-small">
+                <h4>Featured Bundle</h4>
+                <div class="muted">Focus & Study Pack — NeuroFocus + Cogniva + NeuroTrainer</div>
+                <div class="mt-12"><button class="btn btn-primary" type="button" id="openFeatured">View Bundle</button></div>
+              </div>
+            </div>
+          </div>
+          <h3 class="section-title">Top Picks</h3>
+          <div class="catalog-grid" id="homePicks" style="grid-template-columns: repeat(3, 1fr);"></div>
+          <h3 class="section-title mt-12">Lookbook</h3>
+          <div id="lookbook" class="gallery-grid" style="margin-top:8px"></div>
+        </section>
+
+        <section id="tab-catalog" class="hidden">
+          <h3 class="section-title">Catalog</h3>
+          <div class="catalog-controls">
+            <div id="badgeFilters" aria-hidden="false"></div>
+            <select id="catalogSort" aria-label="Sort products">
+              <option value="default">Sort</option>
+              <option value="price-asc">Price: Low → High</option>
+              <option value="price-desc">Price: High → Low</option>
+              <option value="name-asc">Name: A → Z</option>
+            </select>
+          </div>
+          <div class="catalog-grid" id="catalogGrid"></div>
+        </section>
+
+        <section id="tab-bundles" class="hidden">
+          <h3 class="section-title">Bundle Creator</h3>
+          <p class="muted">Use "Add to Bundle" from catalog to build a bundle. Click Predict to see projected cognitive gains.</p>
+          <div class="mt-12">
+            <h4>Current Bundle</h4>
+            <div class="bundle-area" id="bundleContentsPanel"></div>
+            <div class="mt-12" style="display:flex;gap:8px;align-items:center">
+              <button id="predictBundle" class="btn btn-primary" type="button">Predict</button>
+              <button id="clearBundle" class="btn btn-ghost" type="button">Clear</button>
+              <div id="predictContainer" style="margin-left:12px"></div>
+            </div>
+            <div class="predictive-sheet hidden" id="predictiveSheet">
+              <div style="display:flex;gap:12px;align-items:center">
+                <svg class="radar" viewBox="0 0 220 220" id="radarSVG"></svg>
+                <div>
+                  <div><strong>Predicted improvements</strong></div>
+                  <div class="muted" id="predictText">Based on current bundle composition.</div>
+                </div>
+              </div>
+              <div id="neuralCanvas" style="margin-top:12px;position:relative;height:120px"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-vip" class="hidden">
+          <h3 class="section-title">VIP Membership</h3>
+          <p class="muted">Tiered membership benefits and exclusive bundles.</p>
+          <div class="mt-12">
+            <div style="display:flex;gap:12px;align-items:center">
+              <div style="flex:1"><strong id="vipTier">Bronze</strong><div class="muted">Points: <span id="pointsDisplay">0</span></div></div>
+              <div style="display:flex;gap:8px"><button id="upgradeVip" class="btn btn-primary" type="button">Upgrade</button></div>
+            </div>
+            <div style="margin-top:12px"><strong>Perks</strong><ul><li>Early access</li><li>Personalized bundles</li><li>Exclusive offers</li></ul></div>
+          </div>
+        </section>
+
+        <section id="tab-checkout" class="hidden">
+          <h3 class="section-title">Checkout</h3>
+          <div id="checkoutList" style="display:flex;flex-direction:column;gap:10px"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><div class="muted">Estimated total</div><div id="checkoutTotal" class="checkout-total">$0.00</div></div>
+          <div style="margin-top:12px;display:flex;gap:8px"><button id="proceedCheckout" class="btn btn-primary">Proceed to Payment</button><button id="clearCart" class="btn btn-ghost">Clear Cart</button></div>
+        </section>
+
+        <section id="tab-dashboard" class="hidden">
+          <h3 class="section-title">Dashboard</h3>
+          <div style="display:flex;gap:12px">
+            <div style="flex:1;padding:12px;border-radius:10px;background:var(--card);box-shadow:var(--shadow)"><div style="font-weight:700">Saved Bundles</div><div style="font-size:24px" id="savedCount">0</div></div>
+            <div style="flex:1;padding:12px;border-radius:10px;background:var(--card);box-shadow:var(--shadow)"><div style="font-weight:700">Items in Bundle</div><div style="font-size:24px" id="itemsInBundle">0</div></div>
+          </div>
+          <div class="mt-12">
+            <h4>Mini Games & Rewards</h4>
+            <div style="display:flex;gap:12px;align-items:center">
+              <div class="card-small" id="reactionCard" style="width:320px">
+                <div style="font-weight:700">Reaction Test</div>
+                <div class="muted">Click the circle as fast as you can when it appears.</div>
+                <div style="margin-top:8px"><button id="startReaction" class="btn btn-primary" type="button">Start</button></div>
+                <div id="reactionResult" class="muted mt-12"></div>
+              </div>
+              <div class="card-small" style="flex:1">
+                <div style="font-weight:700">Achievements</div>
+                <div id="badgesArea" style="margin-top:8px"></div>
+                <div style="margin-top:12px"><button id="startMemoryGame" class="btn btn-ghost" type="button">Start Memory Game</button></div>
+              </div>
+            </div>
+            <div id="memoryArea" style="margin-top:12px"></div>
+          </div>
+        </section>
+
+        <section id="tab-gallery" class="hidden">
+          <h3 class="section-title">Gallery</h3>
+          <div class="gallery-grid" id="galleryGrid"></div>
+        </section>
+      </div>
     </div>
 
-    <div id="alertBanner"></div>
-
-    <form id="cognitiveForm" class="input-section">
-      <div class="input-group">
-        <label class="input-label tooltip" data-tooltip="Adequate sleep (7-9 hours) is crucial for memory consolidation and cognitive function">
-          <i class="fas fa-bed"></i>
-          Sleep Duration (hours)
-        </label>
-        <div class="slider-container">
-          <input type="range" id="sleep" class="slider-input" min="0" max="12" value="8" step="0.5">
-          <div class="slider-display">
-            <span class="slider-range">0h</span>
-            <span class="slider-value" id="sleepValue">8.0h</span>
-            <span class="slider-range">12h</span>
-          </div>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="sleepProgress"></div>
-        </div>
+    <aside class="panel sidebar sticky">
+      <div class="sidebar-title">Your Bundle</div>
+      <div class="bundle-area" id="bundleContents"><div class="muted">(empty)</div></div>
+      <div class="controls-row">
+        <button id="optimizeBundle" class="btn btn-primary" type="button">Auto-optimize</button>
+        <button id="saveBundle" class="btn btn-ghost" type="button">Save</button>
+        <button id="predictBundleBtn" class="btn btn-ghost" type="button">Predict</button>
+        <button id="arPreview" class="btn btn-ghost" type="button">AR Preview</button>
       </div>
-
-      <div class="input-group">
-        <label class="input-label tooltip" data-tooltip="Sleep quality affects memory consolidation and next-day cognitive performance">
-          <i class="fas fa-star"></i>
-          Sleep Quality
-        </label>
-        <div class="slider-container">
-          <input type="range" id="sleepQuality" class="slider-input" min="1" max="10" value="7">
-          <div class="slider-display">
-            <span class="slider-range">Poor</span>
-            <span class="slider-value" id="sleepQualityValue">7</span>
-            <span class="slider-range">Excellent</span>
-          </div>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="sleepQualityProgress"></div>
-        </div>
+      <div class="mt-12">
+        <h4>Saved Bundles</h4>
+        <div id="savedBundlesList" class="saved-list"></div>
       </div>
+    </aside>
+  </main>
 
-      <div class="input-group">
-        <label class="input-label tooltip" data-tooltip="Chronic stress releases cortisol, which can impair memory and decision-making">
-          <i class="fas fa-heartbeat"></i>
-          Stress Level
-        </label>
-        <div class="slider-container">
-          <input type="range" id="stress" class="slider-input" min="1" max="10" value="5">
-          <div class="slider-display">
-            <span class="slider-range">Low</span>
-            <span class="slider-value" id="stressValue">5</span>
-            <span class="slider-range">High</span>
-          </div>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="stressProgress"></div>
-        </div>
-      </div>
-
-      <div class="input-group">
-        <label class="input-label tooltip" data-tooltip="Regular exercise increases BDNF, promoting neuroplasticity and cognitive health">
-          <i class="fas fa-running"></i>
-          Physical Activity (minutes/day)
-        </label>
-        <div class="slider-container">
-          <input type="range" id="activity" class="slider-input" min="0" max="180" value="30">
-          <div class="slider-display">
-            <span class="slider-range">0min</span>
-            <span class="slider-value" id="activityValue">30min</span>
-            <span class="slider-range">180min</span>
-          </div>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="activityProgress"></div>
-        </div>
-      </div>
-
-      <div class="input-group">
-        <label class="input-label tooltip" data-tooltip="Omega-3s, antioxidants, and balanced nutrition support brain health and cognitive function">
-          <i class="fas fa-apple-alt"></i>
-          Diet Quality
-        </label>
-        <div class="slider-container">
-          <input type="range" id="diet" class="slider-input" min="1" max="10" value="7">
-          <div class="slider-display">
-            <span class="slider-range">Poor</span>
-            <span class="slider-value" id="dietValue">7</span>
-            <span class="slider-range">Excellent</span>
-          </div>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="dietProgress"></div>
-        </div>
-      </div>
-
-      <div class="input-group">
-        <label class="input-label tooltip" data-tooltip="Mindfulness practices reduce stress and improve attention and working memory">
-          <i class="fas fa-leaf"></i>
-          Meditation/Mindfulness (minutes/day)
-        </label>
-        <div class="slider-container">
-          <input type="range" id="meditation" class="slider-input" min="0" max="120" value="10">
-          <div class="slider-display">
-            <span class="slider-range">0min</span>
-            <span class="slider-value" id="meditationValue">10min</span>
-            <span class="slider-range">120min</span>
-          </div>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="meditationProgress"></div>
-        </div>
-      </div>
-
-      <div class="input-group">
-        <label class="input-label tooltip" data-tooltip="Some medications can affect cognitive function - consult your healthcare provider">
-          <i class="fas fa-pills"></i>
-          Current Medications (optional)
-        </label>
-        <input type="text" id="meds" class="medication-input" placeholder="e.g., Vitamin D, Omega-3, Modafinil">
-      </div>
-
-      <button type="submit" class="submit-button">
-        <i class="fas fa-calculator"></i>
-        <span>Calculate Cognitive Score</span>
-      </button>
-    </form>
-
-    <div class="chart-container">
-      <div class="chart-tabs">
-        <button class="chart-tab active" onclick="switchChart('trend', this)">Trend</button>
-        <button class="chart-tab" onclick="switchChart('correlation', this)">Correlation</button>
-        <button class="chart-tab" onclick="switchChart('radar', this)">Radar</button>
-      </div>
-      <canvas id="mainChart"></canvas>
+  <!-- Lightbox -->
+  <div id="nb-lightbox" class="lightbox-overlay" aria-hidden="true">
+    <div class="lightbox-sheet">
+      <button id="lightboxClose" class="lightbox-close" type="button">×</button>
+      <img id="lightboxImg" class="lightbox-img" src="" alt="">
+      <div id="lightboxCaption" class="lightbox-caption"></div>
     </div>
   </div>
 
-  <div class="sidebar-panel">
-    <div class="score-display">
-      <div class="main-score" id="mainScore">--</div>
-      <div class="score-label">Cognitive Score</div>
-    </div>
-
-    <div class="subdomain-scores">
-      <div class="subdomain-item">
-        <div class="subdomain-value" id="memoryScore">--</div>
-        <div class="subdomain-label">Memory</div>
-      </div>
-      <div class="subdomain-item">
-        <div class="subdomain-value" id="focusScore">--</div>
-        <div class="subdomain-label">Focus</div>
-      </div>
-      <div class="subdomain-item">
-        <div class="subdomain-value" id="stressScore">--</div>
-        <div class="subdomain-label">Resilience</div>
-      </div>
-      <div class="subdomain-item">
-        <div class="subdomain-value" id="sleepScore">--</div>
-        <div class="subdomain-label">Sleep Quality</div>
-      </div>
-    </div>
-
-    <div class="recommendations">
-      <h3><i class="fas fa-lightbulb"></i> AI Recommendations</h3>
-      <div id="recommendationsList">
-        <div class="recommendation-item">Complete your assessment to receive personalized recommendations.</div>
-      </div>
-    </div>
-
-    <div class="stats-grid">
-      <div class="stat-item">
-        <div class="stat-value" id="avgScore">--</div>
-        <div class="stat-label">30-Day Average</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value" id="bestScore">--</div>
-        <div class="stat-label">Best Score</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value" id="streak">--</div>
-        <div class="stat-label">Day Streak</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value" id="totalEntries">--</div>
-        <div class="stat-label">Total Entries</div>
-      </div>
-    </div>
-
-    <div class="gamification">
-      <h3><i class="fas fa-trophy"></i> Achievements</h3>
-      <div class="badges-grid" id="badgesGrid">
-        <!-- Badges will be populated by JavaScript -->
-      </div>
-    </div>
-
-    <div class="export-buttons">
-      <button class="export-button" onclick="exportData('csv')">
-        <i class="fas fa-download"></i> Export CSV
-      </button>
-      <button class="export-button" onclick="exportData('pdf')">
-        <i class="fas fa-file-pdf"></i> Export PDF
-      </button>
+  <!-- AR Modal -->
+  <div id="ar-modal" class="ar-modal hidden">
+    <div class="ar-sheet">
+      <div class="controls-row" style="justify-content:space-between;align-items:center"><strong>AR Preview</strong><button id="arClose" class="btn btn-ghost" type="button">Close</button></div>
+      <div class="ar-grid mt-12" id="arPreviewContent"></div>
     </div>
   </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script type="module">
-import { ref, push, get, set, onValue } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+  <div id="nb-toast-container"></div>
 
-// Global variables
-let currentChart = null;
-let currentChartType = 'trend';
-let scoreHistory = [];
-let userData = {
-  totalEntries: 0,
-  bestScore: 0,
-  streak: 0,
-  badges: [],
-  avgScore: 0
-};
+  <script>
+  (function(){
+    // data
+    const assets = [
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F6ba10c6d85a449ec8e287fbed938ad9b?format=webp&width=800', name:'NeuroFocus Capsules', price:39.99, priceStr:'$39.99', badge:'Focus', desc:'Premium nootropic for mental clarity and sustained focus.', impact:{focus:8,memory:4,mood:2,sleep:0,energy:2}},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F85d98986702e4713ba10b54c8b32238c?format=webp&width=800', name:'Cogniva Gummies', price:24.99, priceStr:'$24.99', badge:'Memory', desc:'Chewable vitamins to support recall and mental stamina.', impact:{focus:4,memory:8,mood:2,sleep:0,energy:1}},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F0165df738dd84e17bab62c3e73422299?format=webp&width=800', name:'CalmNeuro Drops', price:29.99, priceStr:'$29.99', badge:'Calm', desc:'Concentrated dropper for calm, restful states.', impact:{focus:0,memory:1,mood:8,sleep:5,energy:0}},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F7f04e73f8d8f4695934c92e39f5937a7?format=webp&width=800', name:'NeuroTrainer Handheld', price:149.00, priceStr:'$149.00', badge:'Gadget', desc:'Handheld cognitive trainer for attention & processing speed.', impact:{focus:7,memory:6,mood:3,sleep:0,energy:2}},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Faba059cdda1d4bd4a9f6b6765c035067?format=webp&width=800', name:'MindWave EEG Headband', price:199.00, priceStr:'$199.00', badge:'Device', desc:'EEG wearable for biofeedback and meditation training.', impact:{focus:6,memory:5,mood:6,sleep:4,energy:1}},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F3c591978967249828994e115de103c7a?format=webp&width=800', name:'NeuroCharge', price:19.99, priceStr:'$19.99', badge:'Energy', desc:'Effervescent drink mix for quick cognitive lift.', impact:{focus:3,memory:1,mood:2,sleep:0,energy:7}},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F02ef19c1089e47b1986055bc021f9ae1?format=webp&width=800', name:'HappyMind Chews', price:14.99, priceStr:'$14.99', badge:'Mood', desc:'Tasty chews to support mood and resilience.', impact:{focus:1,memory:1,mood:7,sleep:0,energy:2}},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F847d6f182939444c8f4c46a0c4e3cc3a?format=webp&width=800', name:'SleepSync Eye Mask', price:34.99, priceStr:'$34.99', badge:'Sleep', desc:'Smart eye mask to guide users into restorative sleep.', impact:{focus:0,memory:0,mood:3,sleep:9,energy:1}}
+    ];
 
-// Initialize app
-document.addEventListener('DOMContentLoaded', function() {
-  try {
-    initializeSliders();
-    initializeBadges();
+    // ATTACHMENT IMAGES (user-supplied) - render separately, do NOT replace core assets
+    const attachments = [
+      'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F40d0038f73dd4462a7febf4cef6c55ae?format=webp&width=1200',
+      'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F98bb7a11c3194d19812159c2bd5a1451?format=webp&width=800',
+      'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F6611cdf0471046c5b894e95949364480?format=webp&width=800',
+      'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Fac6edc0e353a4e59afd16ef4c8a7d7d0?format=webp&width=800',
+      'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F5679f8aa2d00455a87a8c397f25d159a?format=webp&width=800',
+      'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Ff5eb718e92b042579abc4f559cdc1e24?format=webp&width=800',
+      'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Fb0e75b24a52a43108099e653eed44223?format=webp&width=800',
+      'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Fa3758d4729fe47f3a3d3d05219843a7a?format=webp&width=800'
+    ];
 
-    // Check Firebase connectivity before loading data
-    if (window.firebaseDB) {
-      loadUserData();
-    } else {
-      console.warn('Firebase not initialized, running in offline mode');
-      updateStatsDisplay(); // Show default values
-    }
+    function renderLookbook(){ const wrap = $('#lookbook'); if(!wrap) return; wrap.innerHTML=''; attachments.forEach((u,i)=>{ const fig=document.createElement('figure'); fig.className='gallery-item'; const img=document.createElement('img'); img.src=u; img.alt='Lookbook '+(i+1); img.style.cursor='pointer'; img.addEventListener('click', ()=>{ $('#lightboxImg').src = u; $('#lightboxCaption').textContent = 'Lookbook — Image '+(i+1); $('#nb-lightbox').style.display='flex'; $('#nb-lightbox').setAttribute('aria-hidden','false'); }); fig.appendChild(img); wrap.appendChild(fig); }); }
 
-    setupEventListeners();
-  } catch (error) {
-    console.error('Error during app initialization:', error);
-    alert('App initialization failed. Some features may not work properly.');
-  }
-});
-
-// Slider initialization and event handling
-function initializeSliders() {
-  const sliders = ['sleep', 'sleepQuality', 'stress', 'activity', 'diet', 'meditation'];
-  
-  sliders.forEach(sliderId => {
-    const slider = document.getElementById(sliderId);
-    const valueDisplay = document.getElementById(sliderId + 'Value');
-    const progressBar = document.getElementById(sliderId + 'Progress');
-    
-    function updateSlider() {
-      const value = parseFloat(slider.value);
-      const max = parseFloat(slider.max);
-      const min = parseFloat(slider.min);
-      const percentage = ((value - min) / (max - min)) * 100;
-      
-      // Update display value
-      if (sliderId === 'sleep') {
-        valueDisplay.textContent = value.toFixed(1) + 'h';
-      } else if (sliderId === 'activity' || sliderId === 'meditation') {
-        valueDisplay.textContent = value + 'min';
-      } else {
-        valueDisplay.textContent = value;
-      }
-      
-      // Update progress bar
-      progressBar.style.width = percentage + '%';
-      
-      // Color coding for stress (reverse logic)
-      if (sliderId === 'stress') {
-        const stressLevel = (10 - value) / 9 * 100;
-        progressBar.style.width = stressLevel + '%';
-      }
-    }
-    
-    slider.addEventListener('input', updateSlider);
-    updateSlider(); // Initialize
-  });
-}
-
-// Enhanced scoring algorithm with subdomain calculations
-function calculateScores(data) {
-  // Subdomain calculations
-  const memoryScore = Math.round(
-    (data.sleep * 8 + data.sleepQuality * 6 + data.diet * 4 + data.meditation * 2 - data.stress * 3) / 2.3
-  );
-  
-  const focusScore = Math.round(
-    (data.sleepQuality * 7 + data.activity * 0.4 + data.diet * 5 + data.meditation * 3 - data.stress * 4) / 1.54
-  );
-  
-  const stressScore = Math.round(
-    (data.meditation * 4 + data.activity * 0.3 + (10 - data.stress) * 8 + data.sleepQuality * 3) / 1.53
-  );
-  
-  const sleepScore = Math.round(
-    (data.sleep * 6 + data.sleepQuality * 8 + data.meditation * 2 - data.stress * 2) / 1.4
-  );
-  
-  // Overall cognitive score (weighted average)
-  const overallScore = Math.round(
-    (memoryScore * 0.3 + focusScore * 0.25 + stressScore * 0.25 + sleepScore * 0.2)
-  );
-  
-  return {
-    overall: Math.max(0, Math.min(100, overallScore)),
-    memory: Math.max(0, Math.min(100, memoryScore)),
-    focus: Math.max(0, Math.min(100, focusScore)),
-    stressResilience: Math.max(0, Math.min(100, stressScore)),
-    sleepQuality: Math.max(0, Math.min(100, sleepScore))
-  };
-}
-
-// AI-powered recommendations
-function generateRecommendations(data, scores) {
-  const recommendations = [];
-  
-  if (data.sleep < 7) {
-    recommendations.push("🛌 Aim for 7-9 hours of sleep. Consider a consistent bedtime routine to improve sleep duration.");
-  }
-  
-  if (data.sleepQuality < 6) {
-    recommendations.push("💤 Improve sleep environment: dark room, cool temperature (65-68°F), and no screens 1 hour before bed.");
-  }
-  
-  if (data.stress > 7) {
-    recommendations.push("🧘 High stress detected. Try 10-minute daily meditation or deep breathing exercises.");
-  }
-  
-  if (data.activity < 30) {
-    recommendations.push("🏃 Increase physical activity to at least 30 minutes daily. Even a brisk walk can boost cognitive function.");
-  }
-  
-  if (data.diet < 6) {
-    recommendations.push("🥗 Focus on brain-healthy foods: omega-3 rich fish, berries, nuts, and leafy greens.");
-  }
-  
-  if (data.meditation < 10 && data.stress > 5) {
-    recommendations.push("🌱 Start with 5-10 minutes of mindfulness daily. Apps like Headspace or Calm can help.");
-  }
-  
-  // Advanced recommendations based on patterns
-  if (scores.memory < 70) {
-    recommendations.push("🧠 Memory boost: Try the 20-20-20 rule (every 20 min, look at something 20 feet away for 20 seconds).");
-  }
-  
-  if (scores.focus < 70) {
-    recommendations.push("🎯 Focus enhancement: Consider time-blocking and eliminating distractions during work periods.");
-  }
-  
-  if (recommendations.length === 0) {
-    recommendations.push("🌟 Excellent habits! Maintain this routine for optimal cognitive health.");
-  }
-  
-  return recommendations;
-}
-
-// Generate alerts based on critical thresholds
-function generateAlerts(data, scores) {
-  if (data.stress >= 8 && data.sleep < 6) {
-    return {
-      type: 'critical',
-      message: '⚠️ Critical: High stress + insufficient sleep detected. Consider immediate stress management.'
-    };
-  }
-  
-  if (scores.overall < 50) {
-    return {
-      type: 'warning',
-      message: '⚡ Warning: Low cognitive score. Review your lifestyle factors for improvement opportunities.'
-    };
-  }
-  
-  if (scores.overall >= 80) {
-    return {
-      type: 'success',
-      message: '🎉 Excellent cognitive health! Keep up the great work!'
-    };
-  }
-  
-  return null;
-}
-
-// Update displays with animation
-function updateScoreDisplays(scores) {
-  // Animate main score
-  const mainScoreEl = document.getElementById('mainScore');
-  mainScoreEl.classList.add('bounce');
-  setTimeout(() => {
-    mainScoreEl.textContent = scores.overall;
-    mainScoreEl.classList.remove('bounce');
-  }, 100);
-  
-  // Update subdomain scores
-  document.getElementById('memoryScore').textContent = scores.memory;
-  document.getElementById('focusScore').textContent = scores.focus;
-  document.getElementById('stressScore').textContent = scores.stressResilience;
-  document.getElementById('sleepScore').textContent = scores.sleepQuality;
-}
-
-// Update recommendations display
-function updateRecommendations(recommendations) {
-  const container = document.getElementById('recommendationsList');
-  container.innerHTML = '';
-  
-  recommendations.forEach(rec => {
-    const item = document.createElement('div');
-    item.className = 'recommendation-item fade-in';
-    item.textContent = rec;
-    container.appendChild(item);
-  });
-}
-
-// Show alert banner
-function showAlert(alert) {
-  const banner = document.getElementById('alertBanner');
-  if (alert) {
-    banner.className = `alert-banner alert-${alert.type}`;
-    banner.innerHTML = `<i class="fas fa-exclamation-triangle"></i>${alert.message}`;
-    banner.style.display = 'flex';
-  } else {
-    banner.style.display = 'none';
-  }
-}
-
-// Chart management
-function initializeChart() {
-  try {
-    const canvas = document.getElementById('mainChart');
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      updateChart('trend');
-    } else {
-      console.error('Chart canvas not found');
-    }
-  } catch (error) {
-    console.error('Error initializing chart:', error);
-  }
-}
-
-function updateChart(type) {
-  const ctx = document.getElementById('mainChart').getContext('2d');
-  
-  if (currentChart) {
-    currentChart.destroy();
-  }
-  
-  switch(type) {
-    case 'trend':
-      createTrendChart(ctx);
-      break;
-    case 'correlation':
-      createCorrelationChart(ctx);
-      break;
-    case 'radar':
-      createRadarChart(ctx);
-      break;
-  }
-}
-
-function createTrendChart(ctx) {
-  try {
-    const labels = scoreHistory.map((_, index) => `Day ${index + 1}`);
-    const data = scoreHistory.map(entry => entry && entry.overall ? entry.overall : 0);
-
-    currentChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Cognitive Score',
-          data: data,
-          borderColor: '#6366f1',
-          backgroundColor: 'rgba(99, 102, 241, 0.1)',
-          borderWidth: 3,
-          fill: true,
-          tension: 0.4,
-          pointBackgroundColor: '#6366f1',
-          pointBorderColor: '#ffffff',
-          pointBorderWidth: 2,
-          pointRadius: 6
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 100,
-            grid: {
-              color: 'rgba(203, 213, 225, 0.3)'
-            }
-          },
-          x: {
-            grid: {
-              color: 'rgba(203, 213, 225, 0.3)'
-            }
-          }
-        }
-      }
-    });
-  } catch (error) {
-    console.error('Error creating trend chart:', error);
-  }
-}
-
-function createCorrelationChart(ctx) {
-  if (scoreHistory.length < 2) {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.fillStyle = '#64748b';
-    ctx.font = '16px Inter';
-    ctx.textAlign = 'center';
-    ctx.fillText('Need more data for correlation analysis', ctx.canvas.width/2, ctx.canvas.height/2);
-    return;
-  }
-  
-  currentChart = new Chart(ctx, {
-    type: 'scatter',
-    data: {
-      datasets: [{
-        label: 'Sleep vs Score',
-        data: scoreHistory.map(entry => ({x: entry.sleep, y: entry.overall})),
-        backgroundColor: 'rgba(99, 102, 241, 0.6)',
-        borderColor: '#6366f1'
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: true
-        }
-      },
-      scales: {
-        x: {
-          title: {
-            display: true,
-            text: 'Sleep Duration (hours)'
-          }
-        },
-        y: {
-          title: {
-            display: true,
-            text: 'Cognitive Score'
-          },
-          beginAtZero: true,
-          max: 100
-        }
-      }
-    }
-  });
-}
-
-function createRadarChart(ctx) {
-  try {
-    if (scoreHistory.length === 0) {
-      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-      ctx.fillStyle = '#64748b';
-      ctx.font = '16px Inter';
-      ctx.textAlign = 'center';
-      ctx.fillText('No data available for radar chart', ctx.canvas.width/2, ctx.canvas.height/2);
-      return;
-    }
-
-    const latest = scoreHistory[scoreHistory.length - 1];
-    if (!latest) return;
-
-    currentChart = new Chart(ctx, {
-      type: 'radar',
-      data: {
-        labels: ['Memory', 'Focus', 'Stress Resilience', 'Sleep Quality'],
-        datasets: [{
-          label: 'Current Scores',
-          data: [latest.memory || 0, latest.focus || 0, latest.stressResilience || 0, latest.sleepQuality || 0],
-          backgroundColor: 'rgba(99, 102, 241, 0.2)',
-          borderColor: '#6366f1',
-          borderWidth: 2,
-          pointBackgroundColor: '#6366f1'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          r: {
-            beginAtZero: true,
-            max: 100,
-            grid: {
-              color: 'rgba(203, 213, 225, 0.3)'
-            }
-          }
-        }
-      }
-    });
-  } catch (error) {
-    console.error('Error creating radar chart:', error);
-  }
-}
-
-function switchChart(type, targetElement) {
-  try {
-    currentChartType = type;
-    document.querySelectorAll('.chart-tab').forEach(tab => tab.classList.remove('active'));
-
-    // If targetElement is provided, use it; otherwise try to find the active element
-    const activeTab = targetElement || document.querySelector(`[onclick="switchChart('${type}')"]`);
-    if (activeTab) {
-      activeTab.classList.add('active');
-    }
-
-    updateChart(type);
-  } catch (error) {
-    console.error('Error switching chart:', error);
-  }
-}
-
-// Badge system
-function initializeBadges() {
-  const badges = [
-    { id: 'first-entry', icon: '🎯', label: 'First Entry', condition: (data) => data.totalEntries >= 1 },
-    { id: 'week-streak', icon: '🔥', label: 'Week Streak', condition: (data) => data.streak >= 7 },
-    { id: 'high-scorer', icon: '🌟', label: 'High Scorer', condition: (data) => data.bestScore >= 80 },
-    { id: 'consistent', icon: '📈', label: 'Consistent', condition: (data) => data.totalEntries >= 30 },
-    { id: 'perfectionist', icon: '💎', label: 'Perfectionist', condition: (data) => data.bestScore >= 95 },
-    { id: 'wellness-warrior', icon: '⚡', label: 'Wellness Warrior', condition: (data) => data.avgScore >= 75 }
-  ];
-  
-  const container = document.getElementById('badgesGrid');
-  container.innerHTML = '';
-  
-  badges.forEach(badge => {
-    const badgeEl = document.createElement('div');
-    badgeEl.className = `badge-item ${userData.badges.includes(badge.id) ? 'earned' : ''}`;
-    badgeEl.innerHTML = `
-      <div class="badge-icon">${badge.icon}</div>
-      <div class="badge-label">${badge.label}</div>
+    /* subtle glowing typography */
+    const styleGlow = document.createElement('style');
+    styleGlow.textContent = `
+      .brand{color:#7c3aed;text-shadow:0 6px 20px rgba(124,58,237,0.18), 0 2px 6px rgba(124,58,237,0.06)}
+      .section-title, .title{text-shadow:0 6px 18px rgba(79,70,229,0.06)}
+      .title{color:#061033}
     `;
-    container.appendChild(badgeEl);
-  });
-}
+    document.head.appendChild(styleGlow);
 
-function checkBadges() {
-  const badges = [
-    { id: 'first-entry', condition: () => userData.totalEntries >= 1 },
-    { id: 'week-streak', condition: () => userData.streak >= 7 },
-    { id: 'high-scorer', condition: () => userData.bestScore >= 80 },
-    { id: 'consistent', condition: () => userData.totalEntries >= 30 },
-    { id: 'perfectionist', condition: () => userData.bestScore >= 95 },
-    { id: 'wellness-warrior', condition: () => userData.avgScore >= 75 }
-  ];
-  
-  badges.forEach(badge => {
-    if (badge.condition() && !userData.badges.includes(badge.id)) {
-      userData.badges.push(badge.id);
-      showBadgeNotification(badge.id);
-    }
-  });
-  
-  initializeBadges();
-}
+    const $ = s => document.querySelector(s);
+    const $all = s => Array.from(document.querySelectorAll(s));
 
-function showBadgeNotification(badgeId) {
-  // Could implement toast notification here
-  console.log(`Badge earned: ${badgeId}`);
-}
+    // persisted state
+    let cart = JSON.parse(localStorage.getItem('nb_cart')||'[]');
+    let bundles = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]');
+    let points = parseInt(localStorage.getItem('nb_points')||'0');
+    let vip = localStorage.getItem('nb_vip')||'Bronze';
 
-// Data management
-function saveToFirebase(data, scores) {
-  const entryData = {
-    ...data,
-    ...scores,
-    timestamp: new Date().toISOString(),
-    date: new Date().toDateString()
-  };
+    function persist(){ localStorage.setItem('nb_cart', JSON.stringify(cart)); localStorage.setItem('nb_saved_bundles', JSON.stringify(bundles)); localStorage.setItem('nb_points', String(points)); localStorage.setItem('nb_vip', vip); }
 
-  try {
-    const newRef = ref(window.firebaseDB, 'cognitive_data');
-    push(newRef, entryData).then(() => {
-      console.log('Data saved successfully');
-    }).catch((error) => {
-      console.error('Error saving data:', error);
-      alert('Failed to save data. Please check your internet connection.');
-    });
+    function showToast(msg, t=1600){ const c = $('#nb-toast-container'); const el = document.createElement('div'); el.textContent=msg; el.className='toast'; el.style.background='linear-gradient(90deg,var(--accent),var(--accent2))'; el.style.color='#fff'; el.style.padding='8px 12px'; el.style.borderRadius='8px'; el.style.marginTop='8px'; el.style.boxShadow='var(--shadow)'; c.appendChild(el); setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),300); }, t); }
 
-    // Update local data
-    scoreHistory.push(entryData);
-    if (scoreHistory.length > 50) scoreHistory.shift(); // Keep last 50 entries
-
-    updateUserStats();
-    saveUserData();
-  } catch (error) {
-    console.error('Error in saveToFirebase:', error);
-    alert('Failed to save data. Please try again.');
-  }
-}
-
-function loadUserData() {
-  try {
-    const dataRef = ref(window.firebaseDB, 'cognitive_data');
-    get(dataRef).then((snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        scoreHistory = Object.values(data).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-        updateUserStats();
-        updateChart(currentChartType);
-      }
-    }).catch((error) => {
-      console.error('Error loading cognitive data:', error);
-    });
-
-    // Load user metadata
-    const userRef = ref(window.firebaseDB, 'user_metadata');
-    get(userRef).then((snapshot) => {
-      if (snapshot.exists()) {
-        userData = { ...userData, ...snapshot.val() };
-        updateStatsDisplay();
-        initializeBadges();
-      }
-    }).catch((error) => {
-      console.error('Error loading user metadata:', error);
-    });
-  } catch (error) {
-    console.error('Error in loadUserData:', error);
-  }
-}
-
-function updateUserStats() {
-  if (scoreHistory.length === 0) return;
-
-  try {
-    userData.totalEntries = scoreHistory.length;
-
-    // Safe array operations with error handling
-    const overallScores = scoreHistory.map(entry => entry && entry.overall ? entry.overall : 0).filter(score => score > 0);
-
-    if (overallScores.length > 0) {
-      userData.bestScore = Math.max(...overallScores);
-      userData.avgScore = Math.round(overallScores.reduce((sum, score) => sum + score, 0) / overallScores.length);
-    } else {
-      userData.bestScore = 0;
-      userData.avgScore = 0;
+    // nav
+    $all('.site-menu a[data-target]').forEach(a=> a.addEventListener('click', e=>{ e.preventDefault(); const t=a.getAttribute('data-target'); showPanel(t); showToast(document.querySelector('#'+t+' .section-title')?.textContent || 'Opened'); }));
+    function showPanel(id){ const panels = document.querySelectorAll('#mainPanels > section'); panels.forEach(p=> p.classList.add('hidden')); const el=document.getElementById(id); if(el) el.classList.remove('hidden'); $all('.site-menu a').forEach(x=> x.classList.toggle('active', x.getAttribute('data-target')===id)); // scroll and refresh interactions
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // when showing home, ensure hero particles initialize after layout
+      if(id === 'tab-home'){
+        setTimeout(()=>{ initHeroParticles(true); refreshInteractive(); }, 120); }
+      // always refresh interactive behavior for dynamic cards
+      setTimeout(()=> refreshInteractive(), 80);
     }
 
-    // Calculate streak
-    let streak = 0;
-    const today = new Date().toDateString();
-    for (let i = scoreHistory.length - 1; i >= 0; i--) {
-      if (scoreHistory[i] && scoreHistory[i].timestamp) {
-        const entryDate = new Date(scoreHistory[i].timestamp).toDateString();
-        const daysDiff = Math.floor((new Date(today) - new Date(entryDate)) / (1000 * 60 * 60 * 24));
-        if (daysDiff === streak) {
-          streak++;
-        } else {
-          break;
-        }
-      }
+    // ------------------ Interactivity helpers ------------------
+    // Delegated tilt handler for .card-product (single global listener)
+    let _tiltActive = false;
+    function refreshInteractive(){ addCardTilt(); addButtonRipple(); addKeyboardCardActions(); }
+
+    function addCardTilt(){ if(_tiltActive) return; _tiltActive = true; const onMove = (e)=>{
+        const el = e.target.closest && e.target.closest('.card-product');
+        // reset transforms for previously hovered cards not containing cursor
+        document.querySelectorAll('.card-product').forEach(card=>{
+          if(card!==el){ card.style.transform = 'none'; const g=card.querySelector('.card-glow'); if(g) g.style.opacity='0'; }
+        });
+        if(!el) return;
+        const rect = el.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; const cx = rect.width/2; const cy = rect.height/2; const dx = (x - cx)/cx; const dy = (y - cy)/cy; const rx = dy*7; const ry = dx*10; el.style.transform = `perspective(900px) rotateX(${ -rx }deg) rotateY(${ ry }deg) translateZ(6px)`; const glow = el.querySelector('.card-glow'); if(glow){ glow.style.background = `radial-gradient(circle at ${50+dx*20}% ${50+dy*20}%, rgba(124,58,237,0.14), transparent 22%)`; glow.style.opacity='1'; }
+      };
+      const onLeave = (e)=>{
+        const el = e.target.closest && e.target.closest('.card-product'); if(el){ el.style.transform='none'; const g=el.querySelector('.card-glow'); if(g) g.style.opacity='0'; }
+      };
+      document.addEventListener('mousemove', onMove, {passive:true});
+      document.addEventListener('mouseleave', ()=>{ document.querySelectorAll('.card-product').forEach(c=>{ c.style.transform='none'; const g=c.querySelector('.card-glow'); if(g) g.style.opacity='0'; }); }, true);
     }
-    userData.streak = streak;
 
-    updateStatsDisplay();
-    checkBadges();
-  } catch (error) {
-    console.error('Error in updateUserStats:', error);
-    // Set safe defaults
-    userData.totalEntries = scoreHistory.length || 0;
-    userData.bestScore = 0;
-    userData.avgScore = 0;
-    userData.streak = 0;
-    updateStatsDisplay();
-  }
-}
+    // Ensure button ripple is idempotent
+    function addButtonRipple(){ /* noop here because main ripple added elsewhere */ }
 
-function updateStatsDisplay() {
-  try {
-    const avgScoreEl = document.getElementById('avgScore');
-    const bestScoreEl = document.getElementById('bestScore');
-    const streakEl = document.getElementById('streak');
-    const totalEntriesEl = document.getElementById('totalEntries');
+    function addKeyboardCardActions(){ /* noop - keyboard handled elsewhere */ }
 
-    if (avgScoreEl) avgScoreEl.textContent = userData.avgScore || '--';
-    if (bestScoreEl) bestScoreEl.textContent = userData.bestScore || '--';
-    if (streakEl) streakEl.textContent = userData.streak || '--';
-    if (totalEntriesEl) totalEntriesEl.textContent = userData.totalEntries || '--';
-  } catch (error) {
-    console.error('Error updating stats display:', error);
-  }
-}
-
-function saveUserData() {
-  try {
-    const userRef = ref(window.firebaseDB, 'user_metadata');
-    set(userRef, userData).then(() => {
-      console.log('User data saved successfully');
-    }).catch((error) => {
-      console.error('Error saving user data:', error);
-    });
-  } catch (error) {
-    console.error('Error in saveUserData:', error);
-  }
-}
-
-// Theme management
-function toggleTheme() {
-  const body = document.body;
-  const currentTheme = body.getAttribute('data-theme');
-  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  
-  body.setAttribute('data-theme', newTheme);
-  localStorage.setItem('theme', newTheme);
-  
-  const icon = document.querySelector('.theme-toggle i');
-  icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-}
-
-// Load saved theme
-const savedTheme = localStorage.getItem('theme') || 'light';
-document.body.setAttribute('data-theme', savedTheme);
-const themeIcon = document.querySelector('.theme-toggle i');
-themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-
-// Export functionality
-function exportData(format) {
-  if (scoreHistory.length === 0) {
-    alert('No data to export. Please submit at least one assessment.');
-    return;
-  }
-  
-  if (format === 'csv') {
-    exportCSV();
-  } else if (format === 'pdf') {
-    exportPDF();
-  }
-}
-
-function exportCSV() {
-  const headers = ['Date', 'Overall Score', 'Memory', 'Focus', 'Stress Resilience', 'Sleep Quality', 'Sleep Hours', 'Sleep Quality Rating', 'Stress Level', 'Activity Minutes', 'Diet Quality', 'Meditation Minutes', 'Medications'];
-  
-  const rows = scoreHistory.map(entry => [
-    new Date(entry.timestamp).toLocaleDateString(),
-    entry.overall,
-    entry.memory,
-    entry.focus,
-    entry.stressResilience,
-    entry.sleepQuality,
-    entry.sleep,
-    entry.sleepQuality,
-    entry.stress,
-    entry.activity,
-    entry.diet,
-    entry.meditation,
-    entry.meds || ''
-  ]);
-  
-  const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
-  
-  const blob = new Blob([csvContent], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `cognitive-data-${new Date().toISOString().split('T')[0]}.csv`;
-  a.click();
-}
-
-function exportPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  
-  doc.setFontSize(20);
-  doc.text('NeuroGuard Cognitive Report', 20, 30);
-  
-  doc.setFontSize(12);
-  doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 45);
-  doc.text(`Total Entries: ${userData.totalEntries}`, 20, 55);
-  doc.text(`Average Score: ${userData.avgScore}`, 20, 65);
-  doc.text(`Best Score: ${userData.bestScore}`, 20, 75);
-  doc.text(`Current Streak: ${userData.streak} days`, 20, 85);
-  
-  doc.text('Recent Scores:', 20, 105);
-  
-  const recentScores = scoreHistory.slice(-10);
-  recentScores.forEach((entry, index) => {
-    const y = 120 + (index * 10);
-    doc.text(`${new Date(entry.timestamp).toLocaleDateString()}: ${entry.overall}`, 25, y);
-  });
-  
-  doc.save(`cognitive-report-${new Date().toISOString().split('T')[0]}.pdf`);
-}
-
-// Event listeners
-function setupEventListeners() {
-  document.getElementById('cognitiveForm').addEventListener('submit', handleFormSubmit);
-  window.toggleTheme = toggleTheme;
-  window.switchChart = switchChart;
-  window.exportData = exportData;
-  
-  // Initialize chart
-  initializeChart();
-}
-
-function handleFormSubmit(e) {
-  e.preventDefault();
-  
-  const submitButton = document.querySelector('.submit-button');
-  const originalContent = submitButton.innerHTML;
-  
-  submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating...';
-  submitButton.classList.add('loading');
-  
-  setTimeout(() => {
-    const data = {
-      timestamp: new Date().toISOString(),
-      sleep: parseFloat(document.getElementById('sleep').value),
-      sleepQuality: parseInt(document.getElementById('sleepQuality').value),
-      stress: parseInt(document.getElementById('stress').value),
-      activity: parseInt(document.getElementById('activity').value),
-      diet: parseInt(document.getElementById('diet').value),
-      meditation: parseInt(document.getElementById('meditation').value),
-      meds: document.getElementById('meds').value.trim()
-    };
-    
-    const scores = calculateScores(data);
-    const recommendations = generateRecommendations(data, scores);
-    const alert = generateAlerts(data, scores);
-    
-    updateScoreDisplays(scores);
-    updateRecommendations(recommendations);
-    showAlert(alert);
-    
-    try {
-      saveToFirebase(data, scores);
-    } catch (error) {
-      console.error('Error saving to Firebase:', error);
-      alert('Failed to save data. Your assessment was calculated but not saved.');
+    // improved hero particles: can be (re)initialized when home is visible
+    let _heroParticlesInited = false;
+    function initHeroParticles(force){ const hero = document.querySelector('.hero-visual'); if(!hero) return; // if already inited and not forced, skip
+      if(_heroParticlesInited && !force) return; _heroParticlesInited = true;
+      // remove existing canvas if any
+      const existing = hero.querySelector('canvas'); if(existing) existing.remove();
+      const canvas = document.createElement('canvas'); canvas.style.position='absolute'; canvas.style.inset='0'; canvas.style.pointerEvents='none'; canvas.style.width='100%'; canvas.style.height='100%'; canvas.width = hero.clientWidth || 400; canvas.height = hero.clientHeight || 220; hero.style.position = hero.style.position || 'relative'; hero.appendChild(canvas);
+      const ctx = canvas.getContext('2d'); let w=canvas.width, h=canvas.height; function resize(){ w = canvas.width = hero.clientWidth || 400; h = canvas.height = hero.clientHeight || 220; }
+      window.addEventListener('resize', resize);
+      const particles = [];
+      const count = Math.max(8, Math.floor((w*h)/90000));
+      for(let i=0;i<count;i++){ particles.push({x:Math.random()*w,y:Math.random()*h,r:1+Math.random()*6,dx:(Math.random()-0.5)*0.3,dy:(Math.random()-0.5)*0.3,alpha:0.08+Math.random()*0.18}); }
+      let raf;
+      function loop(){ ctx.clearRect(0,0,w,h); particles.forEach(p=>{ p.x += p.dx; p.y += p.dy; if(p.x<0) p.x=w; if(p.x>w) p.x=0; if(p.y<0) p.y=h; if(p.y>h) p.y=0; const g = ctx.createRadialGradient(p.x,p.y,p.r*0.1,p.x,p.y,p.r); g.addColorStop(0,'rgba(124,58,237,'+p.alpha+')'); g.addColorStop(1,'rgba(124,58,237,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }); raf = requestAnimationFrame(loop); }
+      if(typeof raf !== 'undefined') cancelAnimationFrame(raf);
+      loop();
     }
-    updateChart(currentChartType);
-    
-    submitButton.innerHTML = originalContent;
-    submitButton.classList.remove('loading');
-  }, 1000);
-}
-</script>
 
+    // render filters
+    const badges = Array.from(new Set(assets.map(a=>a.badge)));
+    function renderBadgeFilters(){ const wrap = $('#badgeFilters'); wrap.innerHTML=''; const all = document.createElement('button'); all.className='chip active'; all.textContent='All'; all.addEventListener('click', ()=>{ $all('.chip').forEach(c=>c.classList.remove('active')); all.classList.add('active'); renderCatalog(); }); wrap.appendChild(all);
+      badges.forEach(b=>{ const btn = document.createElement('button'); btn.className='chip'; btn.textContent=b; btn.addEventListener('click', ()=>{ $all('.chip').forEach(c=>c.classList.remove('active')); btn.classList.add('active'); renderCatalog('', b); }); wrap.appendChild(btn); }); }
+
+    // render catalog
+    const catalogGrid = $('#catalogGrid'); const galleryGrid = $('#galleryGrid');
+    function renderCatalog(filter='', badgeFilter=null, sort='default'){ if(!catalogGrid) return; catalogGrid.innerHTML=''; galleryGrid && (galleryGrid.innerHTML=''); let list = assets.slice(); if(filter) list = list.filter(a=> a.name.toLowerCase().includes(filter.trim().toLowerCase()) || a.badge.toLowerCase().includes(filter.trim().toLowerCase())); if(badgeFilter) list = list.filter(a=> a.badge===badgeFilter);
+      if(sort==='price-asc') list.sort((x,y)=> x.price - y.price); if(sort==='price-desc') list.sort((x,y)=> y.price - x.price); if(sort==='name-asc') list.sort((x,y)=> x.name.localeCompare(y.name));
+      list.forEach(a=>{ const card=document.createElement('div'); card.className='card-product'; card.tabIndex=0;
+        const glow = document.createElement('div'); glow.className='card-glow'; card.appendChild(glow);
+        const img=document.createElement('img'); img.className='thumb'; img.src=a.src; img.alt=a.name; img.addEventListener('click', ()=> openProductModal(a)); card.appendChild(img);
+        const info=document.createElement('div'); info.className='info'; info.innerHTML=`<div class=\"title\">${a.name}</div><div class=\"meta\"><span class=\"pill\">${a.badge}</span><span class=\"price\">${a.priceStr}</span></div><div class=\"muted\" style=\"margin-top:6px;font-size:13px\">${a.desc}</div>`; card.appendChild(info);
+        const actions=document.createElement('div'); actions.className='actions'; const addBundle=document.createElement('button'); addBundle.className='btn btn-ghost'; addBundle.type='button'; addBundle.textContent='Add to Bundle'; addBundle.addEventListener('click', (e)=>{ e.stopPropagation(); addToBundle(a); grantPoints(5); showToast('Added to bundle +5 pts'); });
+        const addCart=document.createElement('button'); addCart.className='btn btn-primary'; addCart.type='button'; addCart.textContent='Add to Cart'; addCart.addEventListener('click', (e)=>{ e.stopPropagation(); addToCart(a,1); grantPoints(10); showToast('Added to cart +10 pts'); });
+        actions.appendChild(addBundle); actions.appendChild(addCart); card.appendChild(actions); catalogGrid.appendChild(card);
+        if(galleryGrid){ const gItem = document.createElement('figure'); gItem.className='gallery-item'; const gi = document.createElement('img'); gi.src = a.src; gi.alt = a.name; gi.addEventListener('click', ()=> openProductModal(a)); gItem.appendChild(gi); galleryGrid.appendChild(gItem); }
+      }); }
+
+    // bundle functions
+    const bundleArea = $('#bundleContents'); const bundlePanel = $('#bundleContentsPanel');
+    function clearBundlePlaceholder(){ const ph = bundleArea.querySelector('.muted'); if(ph) ph.remove(); }
+    function addToBundle(asset, qty=1){ clearBundlePlaceholder(); const exists = Array.from(bundleArea.querySelectorAll('.bundle-row')).some(r=> r.getAttribute('data-product')===asset.name); if(exists){ showToast('Already in bundle'); return; }
+      const row = document.createElement('div'); row.className='bundle-row'; row.setAttribute('data-product', asset.name);
+      const img = document.createElement('img'); img.src=asset.src; img.alt=asset.name; row.appendChild(img);
+      const label = document.createElement('div'); label.className='bundle-label'; label.textContent=asset.name; row.appendChild(label);
+      const qtyInput = document.createElement('input'); qtyInput.className='qty-input'; qtyInput.type='number'; qtyInput.min='1'; qtyInput.value=qty; qtyInput.addEventListener('input', ()=> updateDashboard()); row.appendChild(qtyInput);
+      const rem = document.createElement('button'); rem.className='btn btn-ghost'; rem.type='button'; rem.textContent='Remove'; rem.addEventListener('click', ()=>{ row.remove(); syncPanel(); updateDashboard(); showToast('Removed'); }); row.appendChild(rem);
+      bundleArea.appendChild(row);
+      // reflect in panel
+      syncPanel(); updateDashboard(); }
+
+    function syncPanel(){ bundlePanel.innerHTML=''; Array.from(bundleArea.querySelectorAll('.bundle-row')).forEach(r=>{ const clone=r.cloneNode(true); // rewire remove
+        clone.querySelectorAll('button').forEach(b=>{ b.addEventListener('click', ()=>{ const name = clone.getAttribute('data-product'); const original = Array.from(bundleArea.querySelectorAll('.bundle-row')).find(rr=> rr.getAttribute('data-product')===name); if(!original) return; if(b.textContent.trim()==='Remove'){ original.remove(); clone.remove(); updateDashboard(); showToast('Removed'); } }); }); bundlePanel.appendChild(clone); }); }
+
+    function clearBundle(){ bundleArea.innerHTML=''; bundlePanel.innerHTML=''; bundleArea.innerHTML='<div class="muted">(empty)</div>'; updateDashboard(); }
+
+    // predictive analytics
+    function predictBundle(){ const rows = Array.from(bundleArea.querySelectorAll('.bundle-row')); if(!rows.length){ showToast('No items in bundle'); return; }
+      const totals = {focus:0,memory:0,mood:0,sleep:0,energy:0}; rows.forEach(r=>{ const name = r.getAttribute('data-product'); const a = assets.find(x=> x.name===name); const qty = parseInt(r.querySelector('.qty-input')?.value||1); if(a){ Object.keys(totals).forEach(k=> totals[k] += (a.impact[k]||0) * qty); } });
+      // normalize to 0-10
+      const max = 10 * rows.length;
+      const normalized = Object.fromEntries(Object.entries(totals).map(([k,v])=> [k, Math.min(10, Math.round((v/max)*10))]));
+      renderRadar(normalized); animateNeuralPaths(rows); $('#predictiveSheet').classList.remove('hidden'); $('#predictText').textContent = 'Projected improvements (0-10)'; }
+
+    function renderRadar(values){ const svg = $('#radarSVG'); svg.innerHTML=''; const metrics = ['focus','memory','mood','sleep','energy']; const cx=110, cy=110, r=80; // draw rings
+      for(let i=4;i>=0;i--){ const rr = (r/4)*i; const circle = document.createElementNS('http://www.w3.org/2000/svg','circle'); circle.setAttribute('cx',cx); circle.setAttribute('cy',cy); circle.setAttribute('r',rr); circle.setAttribute('fill','none'); circle.setAttribute('stroke','rgba(15,23,42,0.04)'); svg.appendChild(circle); }
+      const pts = metrics.map((m,i)=>{ const angle = (Math.PI*2/metrics.length)*i - Math.PI/2; const val = (values[m]||0)/10; const px = cx + Math.cos(angle)*r*val; const py = cy + Math.sin(angle)*r*val; return [px,py]; });
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path'); path.setAttribute('d', 'M'+pts.map(p=> p.join(',')).join(' L ')+' Z'); path.setAttribute('fill','rgba(99,102,241,0.12)'); path.setAttribute('stroke','rgba(99,102,241,0.6)'); path.setAttribute('stroke-width','2'); svg.appendChild(path);
+      pts.forEach((p,i)=>{ const t = document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x', p[0]); t.setAttribute('y', p[1]-8); t.setAttribute('font-size','10'); t.setAttribute('text-anchor','middle'); t.textContent = metrics[i]; svg.appendChild(t); }); }
+
+    function animateNeuralPaths(rows){ const canvas = $('#neuralCanvas'); canvas.innerHTML=''; // simple animated lines from thumbnails to center
+      const brain = document.createElement('div'); brain.style.position='absolute'; brain.style.right='12px'; brain.style.top='12px'; brain.innerHTML = '<svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" stroke="rgba(99,102,241,0.2)" fill="rgba(99,102,241,0.04)"/></svg>'; canvas.appendChild(brain);
+      rows.forEach((r,i)=>{ const name = r.getAttribute('data-product'); const node = document.createElement('div'); node.style.position='absolute'; node.style.left=(12 + i*60)+'px'; node.style.top='40px'; node.style.width='8px'; node.style.height='8px'; node.style.borderRadius='50%'; node.style.background='linear-gradient(90deg,var(--accent),var(--accent2))'; node.style.boxShadow='0 6px 18px rgba(99,102,241,0.12)'; canvas.appendChild(node); const line = document.createElement('div'); line.style.position='absolute'; line.style.left=(12 + i*60 + 4)+'px'; line.style.top='44px'; line.style.width='40px'; line.style.height='2px'; line.style.background='linear-gradient(90deg,var(--accent),var(--accent2))'; line.style.transformOrigin='left center'; line.style.transform='rotate(10deg)'; line.style.transition='transform .6s ease'; canvas.appendChild(line); setTimeout(()=>{ line.style.transform='rotate(-20deg) scaleX(1.8)'; }, 80 + i*60); }); }
+
+    // cart functions
+    function addToCart(asset, qty=1){ const idx = cart.findIndex(c=> c.name===asset.name); if(idx>=0){ cart[idx].qty += qty; } else { cart.push({name:asset.name, price:asset.price, priceStr:asset.priceStr, src:asset.src, qty:qty}); } persist(); renderCheckout(); updateCartCount(); }
+
+    function updateCartCount(){ const c = cart.reduce((s,i)=> s + (i.qty||0),0); $('#cartCount').textContent = c; }
+
+    function renderCheckout(){ const list = $('#checkoutList'); list.innerHTML=''; let total = 0; cart.forEach((item,i)=>{ const el = document.createElement('div'); el.className='checkout-item'; const img = document.createElement('img'); img.src=item.src; img.style.width='56px'; img.style.height='56px'; img.style.objectFit='cover'; img.style.borderRadius='8px'; el.appendChild(img); const info = document.createElement('div'); info.style.flex='1'; info.innerHTML = `<div style="font-weight:700">${item.name}</div><div class=\"muted\">${item.priceStr}</div>`; el.appendChild(info); const qty = document.createElement('input'); qty.type='number'; qty.value=item.qty; qty.min=1; qty.className='qty-input'; qty.addEventListener('input', ()=>{ const v = Math.max(1, parseInt(qty.value||1)); item.qty = v; persist(); renderCheckout(); updateCartCount(); }); el.appendChild(qty); const remove = document.createElement('button'); remove.className='btn btn-ghost'; remove.type='button'; remove.textContent='Remove'; remove.addEventListener('click', ()=>{ cart.splice(i,1); persist(); renderCheckout(); updateCartCount(); showToast('Removed from cart'); }); el.appendChild(remove); list.appendChild(el); total += item.price * item.qty; }); $('#checkoutTotal').textContent = '$' + total.toFixed(2); }
+
+    // saved bundles
+    const savedList = $('#savedBundlesList');
+    function refreshSavedList(){ savedList.innerHTML=''; bundles.forEach((b,i)=>{ const el = document.createElement('div'); el.className='card-product'; el.style.justifyContent='space-between'; el.innerHTML = `<div><strong>${b.name}</strong><div class=\"muted\" style=\"font-size:12px\">${b.items.map(it=> it.name).join(', ')}</div></div><div class=\"saved-controls\"></div>`; const controls = el.querySelector('.saved-controls'); const load = document.createElement('button'); load.className='btn btn-ghost'; load.type='button'; load.textContent='Load'; load.addEventListener('click', ()=>{ bundleArea.innerHTML=''; b.items.forEach(it=>{ const asset = assets.find(a=> a.name===it.name); if(asset) addToBundle(asset, it.qty || 1); }); syncPanel(); updateDashboard(); showToast('Loaded'); }); const del = document.createElement('button'); del.className='btn btn-ghost'; del.type='button'; del.textContent='Delete'; del.addEventListener('click', ()=>{ bundles.splice(i,1); persist(); refreshSavedList(); showToast('Deleted'); }); controls.appendChild(load); controls.appendChild(del); savedList.appendChild(el); }); $('#savedCount').textContent = bundles.length; }
+
+    // alias for backward compatibility
+    function renderSaved(){ refreshSavedList(); }
+
+    // AI Concierge - local simulation
+    function runAnalysis(){ // simulate user metrics and recommendations
+      const baseline = {focus: Math.floor(40 + Math.random()*40), memory: Math.floor(40 + Math.random()*40), mood: Math.floor(40 + Math.random()*40), sleep: Math.floor(30 + Math.random()*50), energy: Math.floor(30 + Math.random()*50)};
+      // update focus score UI
+      const score = Math.round((baseline.focus + baseline.memory + baseline.mood)/3);
+      $('#focusScore').textContent = score;
+      // pick top 3 recommendations based on lowest metrics
+      const sortedMetrics = Object.entries(baseline).sort((a,b)=> a[1]-b[1]).map(x=>x[0]);
+      // score assets by matching impact to weaknesses
+      const scored = assets.map(a=>{ let s=0; Object.keys(a.impact).forEach(k=>{ if(sortedMetrics.indexOf(k) < 3) s += a.impact[k]*2; else s += a.impact[k]; }); return {asset:a, score:s}; }).sort((x,y)=> y.score - x.score).slice(0,3);
+      const recWrap = $('#conciergeRecommendations'); recWrap.innerHTML=''; scored.forEach(s=>{ const el = document.createElement('div'); el.className='card-product'; el.style.justifyContent='space-between'; el.innerHTML = `<div><strong>${s.asset.name}</strong><div class=\"muted\">${s.asset.desc}</div></div><div style=\"display:flex;flex-direction:column;gap:6px\"></div>`; const controls = el.querySelector('div:last-child'); const addBtn = document.createElement('button'); addBtn.className='btn btn-primary'; addBtn.type='button'; addBtn.textContent='Add to Bundle'; addBtn.addEventListener('click', ()=>{ addToBundle(s.asset); showToast('Added'); }); const infoBtn = document.createElement('button'); infoBtn.className='btn btn-ghost'; infoBtn.type='button'; infoBtn.textContent='View'; infoBtn.addEventListener('click', ()=>{ openProductModal(s.asset); }); controls.appendChild(addBtn); controls.appendChild(infoBtn); recWrap.appendChild(el); });
+      showToast('Analysis complete — personalized recommendations ready');
+    }
+
+    // Memory sequence mini-game
+    function startMemoryGame(){ const area = $('#memoryArea'); area.innerHTML=''; const container = document.createElement('div'); container.style.display='flex'; container.style.flexDirection='column'; container.style.gap='8px'; const info = document.createElement('div'); info.className='muted'; info.textContent='Repeat the color sequence'; container.appendChild(info); const board = document.createElement('div'); board.style.display='flex'; board.style.gap='8px'; const colors=['#f97316','#6366f1','#10b981','#ef4444']; const buttons = colors.map(c=>{ const b=document.createElement('div'); b.style.width='48px'; b.style.height='48px'; b.style.borderRadius='8px'; b.style.background=c; b.style.cursor='pointer'; board.appendChild(b); return b; }); container.appendChild(board); const status = document.createElement('div'); status.className='muted'; container.appendChild(status); area.appendChild(container);
+      let sequence=[]; let inputIndex=0; let accepting=false; function flash(idx){ buttons[idx].style.transform='scale(1.15)'; buttons[idx].style.boxShadow='0 8px 24px rgba(0,0,0,0.12)'; setTimeout(()=>{ buttons[idx].style.transform=''; buttons[idx].style.boxShadow=''; }, 400); }
+      function flashSequence(){ inputIndex=0; accepting=false; let i=0; status.textContent='Watch'; const t = setInterval(()=>{ const idx = sequence[i]; flash(idx); i++; if(i>=sequence.length){ clearInterval(t); status.textContent='Your turn'; accepting=true; } }, 600); }
+      function nextRound(){ sequence.push(Math.floor(Math.random()*colors.length)); flashSequence(); }
+      buttons.forEach((b,idx)=> b.addEventListener('click', ()=>{ if(!accepting) return; if(sequence[inputIndex]===idx){ flash(idx); inputIndex++; if(inputIndex===sequence.length){ status.textContent='Correct! Next round...'; grantPoints(10); accepting=false; setTimeout(nextRound,800); } } else { status.textContent='Wrong! Game over.'; accepting=false; sequence=[]; } })); // start
+      sequence=[]; nextRound(); }
+
+    // bind analysis button
+    document.getElementById('runAnalysis') && document.getElementById('runAnalysis').addEventListener('click', runAnalysis);
+    document.getElementById('startMemoryGame') && document.getElementById('startMemoryGame').addEventListener('click', startMemoryGame);
+
+    // rewards & VIP
+    function grantPoints(n){ const multiplier = vip==='Bronze'?1: vip==='Silver'?1.1: vip==='Gold'?1.25:1.5; points += Math.round(n * multiplier); persist(); updatePointsUI(); checkBadges(); }
+    function updatePointsUI(){ $('#pointsDisplay').textContent = points; }
+    function checkBadges(){ const badges = []; if(points>=50) badges.push('Explorer'); if(points>=150) badges.push('Optimizer'); if(points>=300) badges.push('Master'); const area = $('#badgesArea'); area.innerHTML=''; badges.forEach(b=>{ const el = document.createElement('span'); el.className='badge-icon'; el.textContent=b; area.appendChild(el); }); }
+    $('#upgradeVip').addEventListener('click', ()=>{ const tiers = ['Bronze','Silver','Gold','Platinum']; const idx = tiers.indexOf(vip); const next = tiers[Math.min(tiers.length-1, idx+1)]; if(next===vip){ showToast('Already top tier'); return; } vip = next; persist(); updatePointsUI(); showToast('Upgraded to '+vip); $('#vipTier').textContent = vip; });
+
+    // reaction game
+    let reactionTimer=null; let reactionStart=0; function startReaction(){ $('#reactionResult').textContent='Get ready...'; const wait = 800 + Math.random()*1600; setTimeout(()=>{ const circle = document.createElement('div'); circle.style.width='80px'; circle.style.height='80px'; circle.style.borderRadius='50%'; circle.style.background='linear-gradient(90deg,var(--accent),var(--accent2))'; circle.style.marginTop='12px'; circle.style.cursor='pointer'; circle.id='reactionCircle'; const reactionCard = document.getElementById('reactionCard'); reactionCard.appendChild(circle); reactionStart = performance.now(); circle.addEventListener('click', ()=>{ const dt = performance.now() - reactionStart; circle.remove(); $('#reactionResult').textContent = 'Reaction: '+Math.round(dt)+' ms'; grantPoints(Math.max(1, Math.round(1000/dt))); showToast('Reaction score awarded'); }); }, wait); }
+    document.getElementById('startReaction') && document.getElementById('startReaction').addEventListener('click', ()=> startReaction());
+
+    // lightbox
+    function openProductModal(a){ const lb=$('#nb-lightbox'); $('#lightboxImg').src=a.src; $('#lightboxCaption').textContent = a.name + ' — ' + a.priceStr + '\n' + a.desc; lb.style.display='flex'; lb.setAttribute('aria-hidden','false'); const sheet = lb.querySelector('.lightbox-sheet'); let actions = sheet.querySelector('.lightbox-actions'); if(actions) actions.remove(); actions = document.createElement('div'); actions.className='lightbox-actions'; actions.style.display='flex'; actions.style.gap='8px'; actions.style.marginTop='8px'; const b1=document.createElement('button'); b1.className='btn btn-primary'; b1.type='button'; b1.textContent='Add to Bundle'; const b2=document.createElement('button'); b2.className='btn btn-ghost'; b2.type='button'; b2.textContent='Add to Cart'; b1.addEventListener('click', ()=>{ addToBundle(a); grantPoints(5); showToast('Added to bundle +5 pts'); }); b2.addEventListener('click', ()=>{ addToCart(a,1); grantPoints(10); showToast('Added to cart +10 pts'); }); actions.appendChild(b1); actions.appendChild(b2); sheet.appendChild(actions); }
+    $('#lightboxClose').addEventListener('click', ()=>{ const lb=$('#nb-lightbox'); lb.style.display='none'; lb.setAttribute('aria-hidden','true'); });
+
+    // home render
+    function renderHome(){ const home = $('#tab-home'); const picks = $('#homePicks'); picks.innerHTML=''; [0,1,5].forEach(i=>{ const a=assets[i]; const c=document.createElement('div'); c.className='card-product'; const glow = document.createElement('div'); glow.className='card-glow'; c.appendChild(glow); const img=document.createElement('img'); img.src=a.src; img.className='thumb'; img.alt=a.name; img.style.height='140px'; img.addEventListener('click', ()=> openProductModal(a)); c.appendChild(img); const info=document.createElement('div'); info.className='info'; info.innerHTML=`<div class=\"title\">${a.name}</div><div class=\"meta\"><span class=\"pill\">${a.badge}</span><span class=\"price\">${a.priceStr}</span></div>`; c.appendChild(info); const actions=document.createElement('div'); actions.className='actions'; const btn=document.createElement('button'); btn.className='btn btn-primary'; btn.type='button'; btn.textContent='Quick Add'; btn.addEventListener('click', (e)=>{ e.stopPropagation(); addToBundle(a); grantPoints(5); showToast('Added'); }); actions.appendChild(btn); c.appendChild(actions); picks.appendChild(c); }); }
+
+    function renderGallery(){ if(!galleryGrid) return; galleryGrid.innerHTML=''; assets.forEach(a=>{ const g=document.createElement('figure'); g.className='gallery-item'; const img = document.createElement('img'); img.src=a.src; img.alt=a.name; img.addEventListener('click', ()=> openProductModal(a)); g.appendChild(img); galleryGrid.appendChild(g); }); }
+
+    // init seed
+    function seedDemo(){ if(!bundles.length){ bundles = [{ name:'Focus Pack', items:[ {name:'NeuroFocus Capsules', qty:1}, {name:'Cogniva Gummies', qty:1}, {name:'NeuroTrainer Handheld', qty:1} ] }]; }
+      if(!cart.length) cart = [];
+      persist(); }
+
+    function updateDashboard(){ $('#itemsInBundle').textContent = bundleArea.querySelectorAll('.bundle-row').length; updatePointsUI(); refreshSavedList(); renderCheckout(); updateCartCount(); checkBadges(); }
+
+    function init(){ seedDemo(); renderBadgeFilters(); renderHome(); renderCatalog(); refreshSavedList(); renderGallery(); syncPanel(); renderCheckout(); updateCartCount(); refreshSavedList(); updateDashboard(); // default to catalog
+      showPanel('tab-catalog');
+      $('#catalogSort').addEventListener('change', (e)=>{ const s = e.target.value; const activeChip = document.querySelector('.chip.active'); const badge = activeChip && activeChip.textContent !== 'All' ? activeChip.textContent : null; renderCatalog($('.site-search').value, badge, s); });
+      $('.site-search').addEventListener('input', (e)=>{ const activeChip = document.querySelector('.chip.active'); const badge = activeChip && activeChip.textContent !== 'All' ? activeChip.textContent : null; renderCatalog(e.target.value, badge, $('#catalogSort').value); });
+      document.querySelector('.cart-btn').addEventListener('click', ()=> showPanel('tab-checkout'));
+      $('#openFeatured').addEventListener('click', ()=>{ showPanel('tab-bundles'); });
+      $('#proceedCheckout').addEventListener('click', ()=>{ if(!cart.length){ showToast('Cart is empty'); return; } alert('Demo checkout — total: ' + $('#checkoutTotal').textContent); cart=[]; persist(); renderCheckout(); updateCartCount(); showToast('Order placed (demo)'); });
+      $('#clearCart').addEventListener('click', ()=>{ cart=[]; persist(); renderCheckout(); updateCartCount(); showToast('Cart cleared'); });
+      // actions
+      $('#predictBundle').addEventListener('click', ()=> predictBundle());
+      $('#predictBundleBtn').addEventListener('click', ()=>{ showPanel('tab-bundles'); setTimeout(()=> predictBundle(),200); });
+      $('#optimizeBundle').addEventListener('click', ()=>{ const items = Array.from(bundleArea.querySelectorAll('.bundle-row')); items.sort((a,b)=> a.getAttribute('data-product').localeCompare(b.getAttribute('data-product'))); bundleArea.innerHTML=''; items.forEach(i=> bundleArea.appendChild(i)); syncPanel(); showToast('Optimized'); });
+      $('#saveBundle').addEventListener('click', ()=>{ const rows = Array.from(bundleArea.querySelectorAll('.bundle-row')); if(!rows.length){ showToast('No items'); return; } const name = prompt('Bundle name','My Bundle'); if(!name) return; const payload = { name, items: rows.map(r=> ({ name: r.getAttribute('data-product'), qty: parseInt(r.querySelector('.qty-input')?.value||1) })) }; bundles.push(payload); persist(); refreshSavedList(); showToast('Saved'); });
+      $('#clearBundle').addEventListener('click', ()=> clearBundle());
+      // bind games
+      document.getElementById('startReaction') && document.getElementById('startReaction').addEventListener('click', ()=> startReaction());
+      document.getElementById('startMemoryGame') && document.getElementById('startMemoryGame').addEventListener('click', ()=> startMemoryGame());
+
+      renderHome(); renderCatalog(); refreshSavedList(); renderGallery(); renderLookbook(); updateDashboard(); // ensure hero uses a product visual (do not replace core products with attachments)
+      const heroImg = document.querySelector('.hero-visual img'); if(heroImg && assets[0]) heroImg.src = assets[0].src; showPanel('tab-catalog'); }
+
+    init();
+
+    // enhanced interactivity
+    function addCardTilt(){ const cards = document.querySelectorAll('.card-product'); cards.forEach(card=>{ card.style.transformStyle='preserve-3d'; card.style.transition='transform .18s ease'; const glow = card.querySelector('.card-glow'); card.addEventListener('mousemove', e=>{ const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; const cx = rect.width/2; const cy = rect.height/2; const dx = (x - cx)/cx; const dy = (y - cy)/cy; const rx = dy*6; const ry = dx*8; card.style.transform = `perspective(900px) rotateX(${ -rx }deg) rotateY(${ ry }deg) translateZ(6px)`; if(glow){ glow.style.background = `radial-gradient(circle at ${50+dx*20}% ${50+dy*20}%, rgba(124,58,237,0.12), transparent 25%)`; glow.style.opacity='1'; } }); card.addEventListener('mouseleave', ()=>{ card.style.transform='none'; if(glow) glow.style.opacity='0'; }); // make focusable
+        card.addEventListener('focus', ()=> card.classList.add('focused')); card.addEventListener('blur', ()=> card.classList.remove('focused')); }); }
+
+    function addButtonRipple(){ document.addEventListener('click', function(e){ const b = e.target.closest('.btn'); if(!b) return; const rect = b.getBoundingClientRect(); const span = document.createElement('span'); span.className='btn-ripple'; const size=Math.max(rect.width, rect.height)*2; span.style.position='absolute'; span.style.left=(e.clientX-rect.left - size/2)+'px'; span.style.top=(e.clientY-rect.top - size/2)+'px'; span.style.width=size+'px'; span.style.height=size+'px'; span.style.borderRadius='50%'; span.style.background='rgba(255,255,255,0.18)'; span.style.transform='scale(0)'; span.style.pointerEvents='none'; span.style.transition='transform .6s ease, opacity .6s ease'; b.appendChild(span); requestAnimationFrame(()=>{ span.style.transform='scale(1)'; span.style.opacity='0'; }); setTimeout(()=> span.remove(),700); }, true); }
+
+    // saved bundle delegated handlers
+    function addSavedDelegation(){ const list = document.getElementById('savedBundlesList'); if(!list) return; list.addEventListener('click', function(e){ const btn = e.target.closest('button'); if(!btn) return; const card = btn.closest('.card-product'); const idx = Array.from(list.querySelectorAll('.card-product')).indexOf(card); if(idx<0) return; const action = btn.textContent.trim().toLowerCase(); if(action==='load'){ const b = bundles[idx]; bundleArea.innerHTML=''; b.items.forEach(it=>{ const asset = assets.find(a=> a.name===it.name); if(asset) addToBundle(asset, it.qty || 1); }); syncPanel(); updateDashboard(); showToast('Loaded'); } else if(action==='delete'){ bundles.splice(idx,1); persist(); refreshSavedList(); showToast('Deleted'); } }); }
+
+    // keyboard interactions for card products
+    function addKeyboardCardActions(){ document.addEventListener('keydown', function(e){ const el = document.activeElement; if(!el || !el.classList.contains('card-product')) return; if(e.key==='Enter'){ el.querySelector('.thumb')?.click(); } if(e.key===' ' || e.code==='Space'){ e.preventDefault(); el.querySelector('.btn-primary')?.click(); } }); }
+
+    // holographic particles in hero
+    function initHeroParticles(){ const hero = document.querySelector('.hero-visual'); if(!hero) return; const canvas = document.createElement('canvas'); canvas.style.position='absolute'; canvas.style.inset='0'; canvas.style.pointerEvents='none'; hero.style.position='relative'; hero.appendChild(canvas); const ctx = canvas.getContext('2d'); let w=0,h=0; function resize(){ w=canvas.width = hero.clientWidth; h=canvas.height = hero.clientHeight; } window.addEventListener('resize', resize); resize(); const particles=[]; for(let i=0;i<18;i++){ particles.push({x:Math.random()*w,y:Math.random()*h,r:2+Math.random()*4,dx:(Math.random()-0.5)*0.4,dy:(Math.random()-0.5)*0.4,alpha:0.08+Math.random()*0.18}); }
+      function loop(){ ctx.clearRect(0,0,w,h); particles.forEach(p=>{ p.x += p.dx; p.y += p.dy; if(p.x<0) p.x=w; if(p.x>w) p.x=0; if(p.y<0) p.y=h; if(p.y>h) p.y=0; ctx.beginPath(); const g = ctx.createRadialGradient(p.x,p.y,p.r*0.1,p.x,p.y,p.r); g.addColorStop(0,'rgba(124,58,237,'+p.alpha+')'); g.addColorStop(1,'rgba(124,58,237,0)'); ctx.fillStyle = g; ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }); requestAnimationFrame(loop); } loop(); }
+
+    // init extras
+    addCardTilt(); addButtonRipple(); addSavedDelegation(); addKeyboardCardActions(); initHeroParticles();
+
+    // utility exposures for debugging
+    window.addToBundle = addToBundle; window.addToCart = addToCart; window.grantPoints = grantPoints; window.runAnalysis = runAnalysis; window.startMemoryGame = startMemoryGame;
+  })();
+  </script>
 </body>
 </html>
