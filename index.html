@@ -25,7 +25,9 @@
     .site-menu a:hover{background:rgba(99,102,241,0.08);color:var(--accent)}
     .site-menu a.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff}
     .site-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
-    .site-search{padding:8px;border-radius:10px;border:1px solid rgba(15,23,42,0.06)}
+    .site-search{padding:8px;border-radius:10px;border:1px solid rgba(15,23,42,0.06);min-width:220px}
+    .cart-btn{position:relative}
+    .cart-count{position:absolute;top:-6px;right:-8px;background:var(--accent2);color:#fff;border-radius:999px;padding:4px 6px;font-size:12px;font-weight:800}
 
     /* Layout */
     .container{max-width:1200px;margin:20px auto;display:grid;grid-template-columns:1fr 360px;gap:20px;padding:0 20px;align-items:start}
@@ -38,6 +40,9 @@
     .mt-12{margin-top:12px}
 
     /* Catalog */
+    .catalog-controls{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+    .chip{padding:6px 10px;border-radius:999px;background:#fff;border:1px solid rgba(15,23,42,0.06);cursor:pointer;font-weight:700;color:var(--muted)}
+    .chip.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff}
     .catalog-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
     .card-product{display:flex;gap:12px;align-items:center;padding:12px;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid rgba(15,23,42,0.03);transition:transform .18s ease, box-shadow .18s ease}
     .card-product:hover{transform:translateY(-6px);box-shadow:0 12px 30px rgba(15,23,42,0.12)}
@@ -48,9 +53,6 @@
     .pill{background:linear-gradient(90deg,var(--accent2),var(--accent));color:#fff;padding:6px 8px;border-radius:999px;font-weight:700;font-size:12px}
     .price{font-weight:800;color:var(--accent);margin-left:6px}
     .actions{display:flex;flex-direction:column;gap:8px;margin-left:12px}
-    .btn{padding:8px 12px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
-    .btn-primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff}
-    .btn-ghost{background:#fff;border:1px solid rgba(15,23,42,0.06);color:var(--muted)}
 
     /* Sidebar */
     .sidebar{position:relative}
@@ -60,7 +62,13 @@
     .bundle-row{display:flex;gap:8px;align-items:center;padding:8px;background:#fff;border-radius:8px;border:1px solid rgba(15,23,42,0.03)}
     .bundle-row img{width:48px;height:48px;border-radius:6px;object-fit:cover}
     .bundle-row .bundle-label{flex:1}
+    .qty-input{width:72px;padding:6px;border-radius:8px;border:1px solid rgba(15,23,42,0.06)}
+    .move-controls{display:flex;flex-direction:column;gap:6px}
     .sidebar.sticky{position:sticky;top:calc(var(--header-height) + 12px);align-self:start}
+
+    /* Checkout */
+    .checkout-item{display:flex;gap:12px;align-items:center;padding:10px;border-radius:8px;border:1px solid rgba(15,23,42,0.04);background:#fff}
+    .checkout-total{font-weight:800;color:var(--accent);font-size:18px}
 
     /* Gallery */
     .gallery-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
@@ -110,7 +118,7 @@
       </nav>
       <div class="site-actions">
         <input class="site-search" type="search" placeholder="Search products" aria-label="Search">
-        <button class="btn btn-ghost" aria-label="Cart"><i class="fas fa-shopping-cart"></i></button>
+        <button class="btn btn-ghost cart-btn" aria-label="Cart"><i class="fas fa-shopping-cart"></i><span id="cartCount" class="cart-count" aria-hidden="true">0</span></button>
       </div>
     </div>
   </header>
@@ -125,6 +133,15 @@
 
         <section id="tab-catalog" class="hidden">
           <h3 class="section-title">Catalog</h3>
+          <div class="catalog-controls">
+            <div id="badgeFilters" aria-hidden="false"></div>
+            <select id="catalogSort" aria-label="Sort products">
+              <option value="default">Sort</option>
+              <option value="price-asc">Price: Low → High</option>
+              <option value="price-desc">Price: High → Low</option>
+              <option value="name-asc">Name: A → Z</option>
+            </select>
+          </div>
           <div class="catalog-grid" id="catalogGrid"></div>
         </section>
 
@@ -144,7 +161,9 @@
 
         <section id="tab-checkout" class="hidden">
           <h3 class="section-title">Checkout</h3>
-          <div id="checkoutSummary">No items in cart.</div>
+          <div id="checkoutList" style="display:flex;flex-direction:column;gap:10px"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><div class="muted">Estimated total</div><div id="checkoutTotal" class="checkout-total">$0.00</div></div>
+          <div style="margin-top:12px;display:flex;gap:8px"><button id="proceedCheckout" class="btn btn-primary">Proceed to Payment</button><button id="clearCart" class="btn btn-ghost">Clear Cart</button></div>
         </section>
 
         <section id="tab-dashboard" class="hidden">
@@ -195,161 +214,141 @@
 
   <script>
   (function(){
+    // data
     const assets = [
-      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F6ba10c6d85a449ec8e287fbed938ad9b?format=webp&width=800', name:'NeuroFocus Capsules', price:'$39.99', badge:'Focus', desc:'Premium nootropic for mental clarity and sustained focus.'},
-      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F85d98986702e4713ba10b54c8b32238c?format=webp&width=800', name:'Cogniva Gummies', price:'$24.99', badge:'Memory', desc:'Chewable vitamins to support recall and mental stamina.'},
-      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F0165df738dd84e17bab62c3e73422299?format=webp&width=800', name:'CalmNeuro Drops', price:'$29.99', badge:'Calm', desc:'Concentrated dropper for calm, restful states.'},
-      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F7f04e73f8d8f4695934c92e39f5937a7?format=webp&width=800', name:'NeuroTrainer Handheld', price:'$149.00', badge:'Gadget', desc:'Handheld cognitive trainer for attention & processing speed.'},
-      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Faba059cdda1d4bd4a9f6b6765c035067?format=webp&width=800', name:'MindWave EEG Headband', price:'$199.00', badge:'Device', desc:'EEG wearable for biofeedback and meditation training.'},
-      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F3c591978967249828994e115de103c7a?format=webp&width=800', name:'NeuroCharge', price:'$19.99', badge:'Energy', desc:'Effervescent drink mix for quick cognitive lift.'},
-      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F02ef19c1089e47b1986055bc021f9ae1?format=webp&width=800', name:'HappyMind Chews', price:'$14.99', badge:'Mood', desc:'Tasty chews to support mood and resilience.'},
-      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F847d6f182939444c8f4c46a0c4e3cc3a?format=webp&width=800', name:'SleepSync Eye Mask', price:'$34.99', badge:'Sleep', desc:'Smart eye mask to guide users into restorative sleep.'}
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F6ba10c6d85a449ec8e287fbed938ad9b?format=webp&width=800', name:'NeuroFocus Capsules', price:39.99, priceStr:'$39.99', badge:'Focus', desc:'Premium nootropic for mental clarity and sustained focus.'},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F85d98986702e4713ba10b54c8b32238c?format=webp&width=800', name:'Cogniva Gummies', price:24.99, priceStr:'$24.99', badge:'Memory', desc:'Chewable vitamins to support recall and mental stamina.'},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F0165df738dd84e17bab62c3e73422299?format=webp&width=800', name:'CalmNeuro Drops', price:29.99, priceStr:'$29.99', badge:'Calm', desc:'Concentrated dropper for calm, restful states.'},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F7f04e73f8d8f4695934c92e39f5937a7?format=webp&width=800', name:'NeuroTrainer Handheld', price:149.00, priceStr:'$149.00', badge:'Gadget', desc:'Handheld cognitive trainer for attention & processing speed.'},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Faba059cdda1d4bd4a9f6b6765c035067?format=webp&width=800', name:'MindWave EEG Headband', price:199.00, priceStr:'$199.00', badge:'Device', desc:'EEG wearable for biofeedback and meditation training.'},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F3c591978967249828994e115de103c7a?format=webp&width=800', name:'NeuroCharge', price:19.99, priceStr:'$19.99', badge:'Energy', desc:'Effervescent drink mix for quick cognitive lift.'},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F02ef19c1089e47b1986055bc021f9ae1?format=webp&width=800', name:'HappyMind Chews', price:14.99, priceStr:'$14.99', badge:'Mood', desc:'Tasty chews to support mood and resilience.'},
+      {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F847d6f182939444c8f4c46a0c4e3cc3a?format=webp&width=800', name:'SleepSync Eye Mask', price:34.99, priceStr:'$34.99', badge:'Sleep', desc:'Smart eye mask to guide users into restorative sleep.'}
     ];
 
     const $ = s => document.querySelector(s);
     const $all = s => Array.from(document.querySelectorAll(s));
 
+    // cart & bundle state (persist in localStorage)
+    let cart = JSON.parse(localStorage.getItem('nb_cart')||'[]');
+    let bundles = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]');
+
+    function persist(){ localStorage.setItem('nb_cart', JSON.stringify(cart)); localStorage.setItem('nb_saved_bundles', JSON.stringify(bundles)); }
+
+    // toasts
     function showToast(msg, t=1600){ const c = $('#nb-toast-container'); const el = document.createElement('div'); el.textContent=msg; el.className='toast'; el.style.background='linear-gradient(90deg,var(--accent),var(--accent2))'; el.style.color='#fff'; el.style.padding='8px 12px'; el.style.borderRadius='8px'; el.style.marginTop='8px'; el.style.boxShadow='var(--shadow)'; c.appendChild(el); setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),300); }, t); }
 
-    // NAV: wire header links (delegated too)
+    // navigation
     $all('.site-menu a[data-target]').forEach(a=> a.addEventListener('click', e=>{ e.preventDefault(); const t=a.getAttribute('data-target'); showPanel(t); showToast(document.querySelector('#'+t+' .section-title')?.textContent || 'Opened'); }));
-
     function showPanel(id){ const panels = document.querySelectorAll('#mainPanels > section'); panels.forEach(p=> p.classList.add('hidden')); const el=document.getElementById(id); if(el) el.classList.remove('hidden'); $all('.site-menu a').forEach(x=> x.classList.toggle('active', x.getAttribute('data-target')===id)); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
-    // Elements
-    const catalogGrid = $('#catalogGrid');
-    const galleryGrid = $('#galleryGrid');
-    const bundleContents = $('#bundleContents');
-    const bundleContentsPanel = $('#bundleContentsPanel');
-    const savedList = $('#savedBundlesList');
-    const checkoutSummary = $('#checkoutSummary');
+    // filters
+    const badges = Array.from(new Set(assets.map(a=>a.badge)));
+    function renderBadgeFilters(){ const wrap = $('#badgeFilters'); wrap.innerHTML=''; const all = document.createElement('button'); all.className='chip active'; all.textContent='All'; all.addEventListener('click', ()=>{ $all('.chip').forEach(c=>c.classList.remove('active')); all.classList.add('active'); renderCatalog(); }); wrap.appendChild(all);
+      badges.forEach(b=>{ const btn = document.createElement('button'); btn.className='chip'; btn.textContent=b; btn.addEventListener('click', ()=>{ $all('.chip').forEach(c=>c.classList.remove('active')); btn.classList.add('active'); renderCatalog('', b); }); wrap.appendChild(btn); }); }
 
-    // Update checkout summary
-    function updateCheckout(){ const count = bundleContents.querySelectorAll('.bundle-row').length; const names = Array.from(bundleContents.querySelectorAll('.bundle-row')).map(r=> r.getAttribute('data-product')); if(checkoutSummary) checkoutSummary.textContent = count ? count + ' item(s) in bundle: ' + names.join(', ') : 'No items in cart.'; renderDashboard(); }
+    // catalog render with sort and badge filter
+    const catalogGrid = $('#catalogGrid'); const galleryGrid = $('#galleryGrid');
+    function renderCatalog(filter='', badgeFilter=null, sort='default'){ if(!catalogGrid) return; catalogGrid.innerHTML=''; galleryGrid && (galleryGrid.innerHTML=''); let list = assets.slice(); if(filter) list = list.filter(a=> a.name.toLowerCase().includes(filter.trim().toLowerCase()) || a.badge.toLowerCase().includes(filter.trim().toLowerCase())); if(badgeFilter) list = list.filter(a=> a.badge===badgeFilter);
+      if(sort==='price-asc') list.sort((x,y)=> x.price - y.price); if(sort==='price-desc') list.sort((x,y)=> y.price - x.price); if(sort==='name-asc') list.sort((x,y)=> x.name.localeCompare(y.name));
+      list.forEach(a=>{ const card=document.createElement('div'); card.className='card-product'; card.tabIndex=0;
+        const img=document.createElement('img'); img.className='thumb'; img.src=a.src; img.alt=a.name; img.addEventListener('click', ()=> openProductModal(a)); card.appendChild(img);
+        const info=document.createElement('div'); info.className='info'; info.innerHTML=`<div class=\"title\">${a.name}</div><div class=\"meta\"><span class=\"pill\">${a.badge}</span><span class=\"price\">${a.priceStr}</span></div><div class=\"muted\" style=\"margin-top:6px;font-size:13px\">${a.desc}</div>`; card.appendChild(info);
+        const actions=document.createElement('div'); actions.className='actions'; const addBundle=document.createElement('button'); addBundle.className='btn btn-ghost'; addBundle.type='button'; addBundle.textContent='Add to Bundle'; addBundle.addEventListener('click', (e)=>{ e.stopPropagation(); addToBundle(a); showToast('Added to bundle'); });
+        const addCart=document.createElement('button'); addCart.className='btn btn-primary'; addCart.type='button'; addCart.textContent='Add to Cart'; addCart.addEventListener('click', (e)=>{ e.stopPropagation(); addToCart(a,1); showToast('Added to cart'); });
+        actions.appendChild(addBundle); actions.appendChild(addCart); card.appendChild(actions); catalogGrid.appendChild(card);
+        if(galleryGrid){ const gItem = document.createElement('figure'); gItem.className='gallery-item'; const gi = document.createElement('img'); gi.src = a.src; gi.alt = a.name; gi.addEventListener('click', ()=> openProductModal(a)); gItem.appendChild(gi); galleryGrid.appendChild(gItem); }
+      }); }
 
-    // Add to bundle helper
-    function createBundleRow(asset){ const item=document.createElement('div'); item.className='bundle-row'; item.setAttribute('data-product', asset.name); const img=document.createElement('img'); img.src=asset.src; img.alt=asset.name; item.appendChild(img); const lbl=document.createElement('div'); lbl.className='bundle-label'; lbl.textContent=asset.name; item.appendChild(lbl); const btn=document.createElement('button'); btn.className='btn btn-ghost'; btn.type='button'; btn.textContent='Remove'; btn.addEventListener('click', ()=>{ item.remove(); updateCheckout(); showToast('Removed'); }); item.appendChild(btn); return item; }
-
-    function addBundleItem(asset){ const item = createBundleRow(asset); // avoid duplicates
-      const exists = Array.from(bundleContents.querySelectorAll('.bundle-row')).some(r=> r.getAttribute('data-product')===asset.name);
-      if(exists){ showToast('Already in bundle'); return; }
-      // remove placeholder empty text if present
-      const placeholder = bundleContents.querySelector('.muted'); if(placeholder) placeholder.remove();
-      bundleContents.appendChild(item);
-      const copy = item.cloneNode(true); // wire clone remove
-      copy.querySelector('button').addEventListener('click', ()=>{ copy.remove(); updateCheckout(); showToast('Removed'); });
-      // ensure bundle panel also reflects
-      bundleContentsPanel.appendChild(copy);
+    // bundle functions (sidebar + panel sync)
+    const bundleArea = $('#bundleContents'); const bundlePanel = $('#bundleContentsPanel');
+    function clearBundlePlaceholder(){ const ph = bundleArea.querySelector('.muted'); if(ph) ph.remove(); }
+    function addToBundle(asset, qty=1){ clearBundlePlaceholder(); const exists = Array.from(bundleArea.querySelectorAll('.bundle-row')).some(r=> r.getAttribute('data-product')===asset.name); if(exists){ showToast('Already in bundle'); return; }
+      const row = document.createElement('div'); row.className='bundle-row'; row.setAttribute('data-product', asset.name);
+      const img = document.createElement('img'); img.src=asset.src; img.alt=asset.name; row.appendChild(img);
+      const label = document.createElement('div'); label.className='bundle-label'; label.textContent=asset.name; row.appendChild(label);
+      const qtyInput = document.createElement('input'); qtyInput.className='qty-input'; qtyInput.type='number'; qtyInput.min='1'; qtyInput.value=qty; qtyInput.addEventListener('input', ()=> updateCheckout()); row.appendChild(qtyInput);
+      const move = document.createElement('div'); move.className='move-controls'; const up = document.createElement('button'); up.className='btn btn-ghost'; up.type='button'; up.textContent='↑'; up.title='Move up'; up.addEventListener('click', ()=>{ const prev = row.previousElementSibling; if(prev) bundleArea.insertBefore(row, prev); syncPanel(); }); const down = document.createElement('button'); down.className='btn btn-ghost'; down.type='button'; down.textContent='↓'; down.title='Move down'; down.addEventListener('click', ()=>{ const next = row.nextElementSibling; if(next) bundleArea.insertBefore(next, row); syncPanel(); }); move.appendChild(up); move.appendChild(down); row.appendChild(move);
+      const rem = document.createElement('button'); rem.className='btn btn-ghost'; rem.type='button'; rem.textContent='Remove'; rem.addEventListener('click', ()=>{ row.remove(); syncPanel(); updateCheckout(); showToast('Removed'); }); row.appendChild(rem);
+      bundleArea.appendChild(row);
+      // also reflect in bundle panel (clone)
+      const clone = row.cloneNode(true);
+      // wire clone's buttons
+      clone.querySelectorAll('button').forEach(b=>{ b.addEventListener('click', ()=>{ // actions in panel mirror sidebar
+        const name = clone.getAttribute('data-product'); const original = Array.from(bundleArea.querySelectorAll('.bundle-row')).find(r=> r.getAttribute('data-product')===name);
+        if(!original) return; if(b.textContent.trim()==='Remove'){ original.remove(); clone.remove(); updateCheckout(); showToast('Removed'); } if(b.textContent.trim()==='↑'){ const prev=original.previousElementSibling; if(prev) bundleArea.insertBefore(original, prev); syncPanel(); } if(b.textContent.trim()==='↓'){ const next=original.nextElementSibling; if(next) bundleArea.insertBefore(next, original); syncPanel(); }
+      }); });
+      bundlePanel.appendChild(clone);
       updateCheckout(); }
 
-    // Render catalog and gallery
-    function renderCatalog(filter=''){ if(!catalogGrid) return; catalogGrid.innerHTML=''; galleryGrid && (galleryGrid.innerHTML=''); const f=filter.trim().toLowerCase(); assets.filter(a=> !f || a.name.toLowerCase().includes(f) || a.badge.toLowerCase().includes(f)).forEach(a=>{
-      const card=document.createElement('div'); card.className='card-product';
-      const img=document.createElement('img'); img.className='thumb'; img.src=a.src; img.alt=a.name; img.addEventListener('click', ()=> openProductModal(a)); card.appendChild(img);
-      const info=document.createElement('div'); info.className='info'; info.innerHTML=`<div class=\"title\">${a.name}</div><div class=\"meta\"><span class=\"pill\">${a.badge}</span><span class=\"price\">${a.price}</span></div><div class=\"muted\" style=\"margin-top:6px;font-size:13px\">${a.desc}</div>`;
-      card.appendChild(info);
-      const actions=document.createElement('div'); actions.className='actions';
-      const addBundle=document.createElement('button'); addBundle.className='btn btn-ghost'; addBundle.type='button'; addBundle.textContent='Add to Bundle'; addBundle.addEventListener('click', (e)=>{ e.stopPropagation(); addBundleItem(a); showToast('Added to bundle'); });
-      const addCart=document.createElement('button'); addCart.className='btn btn-primary'; addCart.type='button'; addCart.textContent='Add to Cart'; addCart.addEventListener('click', (e)=>{ e.stopPropagation(); addBundleItem(a); showToast('Added to cart'); });
-      actions.appendChild(addBundle); actions.appendChild(addCart);
-      card.appendChild(actions);
-      catalogGrid.appendChild(card);
+    function syncPanel(){ // rebuild panel from sidebar state
+      bundlePanel.innerHTML=''; Array.from(bundleArea.querySelectorAll('.bundle-row')).forEach(r=>{ const clone=r.cloneNode(true); // wire remove
+        clone.querySelectorAll('button').forEach(b=> b.addEventListener('click', ()=>{ const name = r.getAttribute('data-product'); if(b.textContent.trim()==='Remove'){ r.remove(); clone.remove(); updateCheckout(); showToast('Removed'); } if(b.textContent.trim()==='↑'){ const prev=r.previousElementSibling; if(prev) bundleArea.insertBefore(r, prev); syncPanel(); } if(b.textContent.trim()==='↓'){ const next=r.nextElementSibling; if(next) bundleArea.insertBefore(next, r); syncPanel(); } })); bundlePanel.appendChild(clone); }); updateCheckout(); }
 
-      if(galleryGrid){ const gItem = document.createElement('figure'); gItem.className='gallery-item'; const gi = document.createElement('img'); gi.src = a.src; gi.alt = a.name; gi.addEventListener('click', ()=> openProductModal(a)); gItem.appendChild(gi); galleryGrid.appendChild(gItem); }
-    }); }
+    // cart functions
+    function addToCart(asset, qty=1){ const idx = cart.findIndex(c=> c.name===asset.name); if(idx>=0){ cart[idx].qty += qty; } else { cart.push({name:asset.name, price:asset.price, priceStr:asset.priceStr, src:asset.src, qty:qty}); } persist(); renderCheckout(); updateCartCount(); }
 
-    // Product modal / lightbox
-    function openProductModal(a){ const lb=$('#nb-lightbox'); $('#lightboxImg').src=a.src; $('#lightboxCaption').textContent = a.name + ' — ' + a.price + '\n' + a.desc; lb.style.display='flex'; lb.setAttribute('aria-hidden','false'); // attach actions
-      const sheet = lb.querySelector('.lightbox-sheet'); let actions = sheet.querySelector('.lightbox-actions'); if(actions) actions.remove(); actions = document.createElement('div'); actions.className='lightbox-actions'; actions.style.display='flex'; actions.style.gap='8px'; actions.style.marginTop='8px'; const b1=document.createElement('button'); b1.className='btn btn-primary'; b1.type='button'; b1.textContent='Add to Bundle'; const b2=document.createElement('button'); b2.className='btn btn-ghost'; b2.type='button'; b2.textContent='Add to Cart'; b1.addEventListener('click', ()=>{ addBundleItem(a); showToast('Added to bundle'); }); b2.addEventListener('click', ()=>{ addBundleItem(a); showToast('Added to cart'); }); actions.appendChild(b1); actions.appendChild(b2); sheet.appendChild(actions); }
+    function updateCartCount(){ const c = cart.reduce((s,i)=> s + (i.qty||0),0); $('#cartCount').textContent = c; }
 
-    $('#lightboxClose').addEventListener('click', ()=>{ const lb=$('#nb-lightbox'); lb.style.display='none'; lb.setAttribute('aria-hidden','true'); });
+    function renderCheckout(){ const list = $('#checkoutList'); list.innerHTML=''; let total = 0; cart.forEach((item,i)=>{ const el = document.createElement('div'); el.className='checkout-item'; const img = document.createElement('img'); img.src=item.src; img.style.width='56px'; img.style.height='56px'; img.style.objectFit='cover'; img.style.borderRadius='8px'; el.appendChild(img); const info = document.createElement('div'); info.style.flex='1'; info.innerHTML = `<div style="font-weight:700">${item.name}</div><div class=\"muted\">${item.priceStr}</div>`; el.appendChild(info); const qty = document.createElement('input'); qty.type='number'; qty.value=item.qty; qty.min=1; qty.className='qty-input'; qty.addEventListener('input', ()=>{ const v = Math.max(1, parseInt(qty.value||1)); item.qty = v; persist(); renderCheckout(); updateCartCount(); }); el.appendChild(qty); const remove = document.createElement('button'); remove.className='btn btn-ghost'; remove.type='button'; remove.textContent='Remove'; remove.addEventListener('click', ()=>{ cart.splice(i,1); persist(); renderCheckout(); updateCartCount(); showToast('Removed from cart'); }); el.appendChild(remove); list.appendChild(el); total += item.price * item.qty; }); $('#checkoutTotal').textContent = '$' + total.toFixed(2); }
 
-    // Saved bundles
-    function renderSaved(){ savedList.innerHTML=''; const s=JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]'); s.forEach((b,i)=>{ const el=document.createElement('div'); el.className='card-product'; el.style.justifyContent='space-between'; el.innerHTML=`<div><strong>${b.name}</strong><div class=\"muted\" style=\"font-size:12px\">${b.items.join(', ')}</div></div><div class=\"saved-controls\"></div>`; const btns = el.querySelector('.saved-controls'); const loadBtn = document.createElement('button'); loadBtn.className='btn btn-ghost'; loadBtn.type='button'; loadBtn.textContent='Load'; const delBtn = document.createElement('button'); delBtn.className='btn btn-ghost'; delBtn.type='button'; delBtn.textContent='Delete'; btns.appendChild(loadBtn); btns.appendChild(delBtn); savedList.appendChild(el);
-        loadBtn.addEventListener('click', ()=>{ bundleContents.innerHTML=''; bundleContentsPanel.innerHTML=''; b.items.forEach(n=>{ const found = assets.find(x=>x.name===n); if(found) addBundleItem(found); }); updateCheckout(); showToast('Loaded'); });
-        delBtn.addEventListener('click', ()=>{ s.splice(i,1); localStorage.setItem('nb_saved_bundles', JSON.stringify(s)); renderSaved(); showToast('Deleted'); }); }); }
+    // saved bundles
+    const savedList = $('#savedBundlesList');
+    function renderSaved(){ savedList.innerHTML=''; bundles.forEach((b,i)=>{ const el = document.createElement('div'); el.className='card-product'; el.style.justifyContent='space-between'; el.innerHTML = `<div><strong>${b.name}</strong><div class=\"muted\" style=\"font-size:12px\">${b.items.map(it=> it.name).join(', ')}</div></div><div class=\"saved-controls\"></div>`; const controls = el.querySelector('.saved-controls'); const load = document.createElement('button'); load.className='btn btn-ghost'; load.type='button'; load.textContent='Load'; load.addEventListener('click', ()=>{ // load into sidebar
+        bundleArea.innerHTML=''; b.items.forEach(it=>{ const asset = assets.find(a=> a.name===it.name); if(asset) addToBundle(asset, it.qty || 1); }); updateCheckout(); showToast('Loaded'); }); const del = document.createElement('button'); del.className='btn btn-ghost'; del.type='button'; del.textContent='Delete'; del.addEventListener('click', ()=>{ bundles.splice(i,1); persist(); renderSaved(); showToast('Deleted'); }); controls.appendChild(load); controls.appendChild(del); savedList.appendChild(el); }); }
 
     // optimize & save
-    $('#optimizeBundle').addEventListener('click', ()=>{ const items = Array.from(bundleContents.querySelectorAll('.bundle-row')); items.sort((a,b)=> a.getAttribute('data-product').localeCompare(b.getAttribute('data-product'))); bundleContents.innerHTML=''; bundleContentsPanel.innerHTML=''; items.forEach(i=>{ bundleContents.appendChild(i); const copy=i.cloneNode(true); copy.querySelector('button').addEventListener('click', ()=>{ copy.remove(); updateCheckout(); showToast('Removed'); }); bundleContentsPanel.appendChild(copy); }); updateCheckout(); showToast('Optimized'); });
-    $('#saveBundle').addEventListener('click', ()=>{ const items = Array.from(bundleContents.querySelectorAll('.bundle-row')).map(i=>i.getAttribute('data-product')); if(!items.length){ showToast('No items'); return; } const name = prompt('Bundle name','My Bundle'); if(!name) return; const s = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]'); s.push({name, items}); localStorage.setItem('nb_saved_bundles', JSON.stringify(s)); renderSaved(); showToast('Saved'); });
+    $('#optimizeBundle').addEventListener('click', ()=>{ const items = Array.from(bundleArea.querySelectorAll('.bundle-row')); items.sort((a,b)=> a.getAttribute('data-product').localeCompare(b.getAttribute('data-product'))); bundleArea.innerHTML=''; items.forEach(i=> bundleArea.appendChild(i)); syncPanel(); showToast('Optimized'); });
+    $('#saveBundle').addEventListener('click', ()=>{ const rows = Array.from(bundleArea.querySelectorAll('.bundle-row')); if(!rows.length){ showToast('No items'); return; } const name = prompt('Bundle name','My Bundle'); if(!name) return; const payload = { name, items: rows.map(r=> ({ name: r.getAttribute('data-product'), qty: parseInt(r.querySelector('.qty-input')?.value||1) })) }; bundles.push(payload); persist(); renderSaved(); showToast('Saved'); });
 
-    // AR preview
-    $('#arPreview').addEventListener('click', ()=>{ const preview = $('#arPreviewContent'); if(!preview) return; preview.innerHTML=''; const imgs = Array.from(bundleContents.querySelectorAll('.bundle-row img')).map(i=>i.src); if(!imgs.length) preview.textContent='No items to preview'; else imgs.forEach(u=>{ const im=document.createElement('img'); im.src=u; im.style.width='80px'; im.style.height='80px'; im.style.objectFit='cover'; im.style.borderRadius='6px'; preview.appendChild(im); }); $('#ar-modal').classList.remove('hidden'); $('#ar-modal').style.display='flex'; });
-    $('#arClose') && $('#arClose').addEventListener('click', ()=>{ const m = document.getElementById('ar-modal'); m.classList.add('hidden'); m.style.display='none'; });
+    // proceed checkout (demo)
+    $('#proceedCheckout').addEventListener('click', ()=>{ if(!cart.length){ showToast('Cart is empty'); return; } alert('Demo checkout — total: ' + $('#checkoutTotal').textContent); cart=[]; persist(); renderCheckout(); updateCartCount(); showToast('Order placed (demo)'); });
+    $('#clearCart').addEventListener('click', ()=>{ cart=[]; persist(); renderCheckout(); updateCartCount(); showToast('Cart cleared'); });
 
-    // search handler
-    $('.site-search').addEventListener('input', function(){ renderCatalog(this.value); });
+    // lightbox
+    function openProductModal(a){ const lb=$('#nb-lightbox'); $('#lightboxImg').src=a.src; $('#lightboxCaption').textContent = a.name + ' — ' + a.priceStr + '\n' + a.desc; lb.style.display='flex'; lb.setAttribute('aria-hidden','false'); const sheet = lb.querySelector('.lightbox-sheet'); let actions = sheet.querySelector('.lightbox-actions'); if(actions) actions.remove(); actions = document.createElement('div'); actions.className='lightbox-actions'; actions.style.display='flex'; actions.style.gap='8px'; actions.style.marginTop='8px'; const b1=document.createElement('button'); b1.className='btn btn-primary'; b1.type='button'; b1.textContent='Add to Bundle'; const b2=document.createElement('button'); b2.className='btn btn-ghost'; b2.type='button'; b2.textContent='Add to Cart'; b1.addEventListener('click', ()=>{ addToBundle(a); showToast('Added to bundle'); }); b2.addEventListener('click', ()=>{ addToCart(a,1); showToast('Added to cart'); }); actions.appendChild(b1); actions.appendChild(b2); sheet.appendChild(actions); }
+    $('#lightboxClose').addEventListener('click', ()=>{ const lb=$('#nb-lightbox'); lb.style.display='none'; lb.setAttribute('aria-hidden','true'); });
 
-    // Dashboard populate
-    function renderDashboard(){ const dash = $('#tab-dashboard'); if(!dash) return; const savedCount = (JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]').length); const itemsCount = bundleContents.querySelectorAll('.bundle-row').length; dash.innerHTML = '<h3 class="section-title">Dashboard</h3><div style="display:flex;gap:12px"><div style="flex:1;padding:12px;border-radius:10px;background:var(--card);box-shadow:var(--shadow)"><div style="font-weight:700">Saved Bundles</div><div style="font-size:24px">'+savedCount+'</div></div><div style="flex:1;padding:12px;border-radius:10px;background:var(--card);box-shadow:var(--shadow)"><div style="font-weight:700">Items in Bundle</div><div style="font-size:24px">'+itemsCount+'</div></div></div>'; }
-
-    // Seed demo data so app isn't empty
-    function seedDemo(){ // saved bundles
-      const existing = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]');
-      if(!existing.length){ const demo = [{name:'Focus Pack', items:['NeuroFocus Capsules','Cogniva Gummies','NeuroTrainer Handheld']}]; localStorage.setItem('nb_saved_bundles', JSON.stringify(demo)); }
-      // populate sidebar bundle with one item if empty
-      if(bundleContents.querySelectorAll('.bundle-row').length===0){ addBundleItem(assets[0]); }
-    }
-
-    // init order: render content, seed, then show default tab
-    function init(){ renderHome(); renderCatalog(); renderSaved(); seedDemo(); updateCheckout(); renderDashboard(); // default to catalog to show populated content
-      showPanel('tab-catalog');
-      // accessibility: ensure every button has type and pointer cursor
-      document.querySelectorAll('button').forEach(b=>{ if(!b.type) b.type='button'; b.style.cursor='pointer'; });
-      // delegated click handler to make dynamically added elements interactive
-      document.addEventListener('click', function(e){
-        const menu = e.target.closest('[data-target]');
-        if(menu){ e.preventDefault(); showPanel(menu.getAttribute('data-target')); showToast(document.querySelector('#'+menu.getAttribute('data-target')+' .section-title')?.textContent || 'Opened'); return; }
-
-        const addBtn = e.target.closest('button');
-        if(addBtn){ const txt = addBtn.textContent.trim().toLowerCase();
-          // handle remove inside bundles
-          if(txt === 'remove'){ const row = addBtn.closest('.bundle-row'); if(row) row.remove(); updateCheckout(); showToast('Removed'); return; }
-          if(txt.includes('add to bundle') || txt === 'quick add'){ // find product in same card
-            const card = addBtn.closest('.card-product'); const gallery = addBtn.closest('.gallery-item');
-            let name = null; if(card) name = card.querySelector('.title')?.textContent; if(gallery) name = gallery.querySelector('img')?.alt;
-            if(name){ const asset = assets.find(a=>a.name===name); if(asset) addBundleItem(asset); return; }
-          }
-          if(txt.includes('add to cart')){ // same behavior for demo
-            const card = addBtn.closest('.card-product'); let name = card?.querySelector('.title')?.textContent; if(name){ const asset = assets.find(a=>a.name===name); if(asset) addBundleItem(asset); showToast('Added to cart'); return; }
-          }
-          if(txt === 'load' || txt === 'delete'){ // ignore, saved list has its own handlers
-            return; }
-        }
-      }, true);
-
-      // keyboard: Enter triggers click on focused actionable elements
-      document.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ const el = document.activeElement; if(el && (el.matches('button') || el.matches('.card-product'))) el.click(); } });
-    }
-
-    // home render
+    // gallery and homepage
     function renderHome(){ const home = $('#tab-home'); home.innerHTML = '';
       const h2 = document.createElement('h2'); h2.className='section-title'; h2.textContent='NeuroBoutique — Where Science Meets Luxury'; home.appendChild(h2);
       const p = document.createElement('p'); p.className='muted'; p.textContent='AI-curated brain wellness products, bundles, and tools. Discover featured picks and personalized recommendations.'; home.appendChild(p);
+      const hero = document.createElement('div'); hero.className='hero'; const visual = document.createElement('div'); visual.className='hero-visual'; const visImg = document.createElement('img'); visImg.src = assets[4].src; visImg.alt='Hero'; visual.appendChild(visImg); const side = document.createElement('div'); side.className='hero-side'; const concierge = document.createElement('div'); concierge.className='card-small'; const hcons = document.createElement('h4'); hcons.textContent='AI Concierge'; concierge.appendChild(hcons); const scons = document.createElement('div'); scons.className='muted'; scons.textContent = 'Welcome back — your Focus Score today is 72'; concierge.appendChild(scons); const featured = document.createElement('div'); featured.className='card-small'; const hfeat = document.createElement('h4'); hfeat.textContent='Featured Bundle'; featured.appendChild(hfeat); const sfeat = document.createElement('div'); sfeat.className='muted'; sfeat.textContent = 'Focus & Study Pack — NeuroFocus + Cogniva + NeuroTrainer'; featured.appendChild(sfeat); const btnWrap = document.createElement('div'); btnWrap.className='mt-12'; const of = document.createElement('button'); of.className='btn btn-primary'; of.type='button'; of.id='openFeatured'; of.textContent='View Bundle'; btnWrap.appendChild(of); featured.appendChild(btnWrap); side.appendChild(concierge); side.appendChild(featured); hero.appendChild(visual); hero.appendChild(side); home.appendChild(hero);
+      const h3 = document.createElement('h3'); h3.className='section-title'; h3.textContent='Top Picks'; home.appendChild(h3); const picks = document.createElement('div'); picks.className='catalog-grid'; picks.id='homePicks'; picks.style.gridTemplateColumns='repeat(3,1fr)'; home.appendChild(picks);
+      [0,1,5].forEach(i=>{ const a=assets[i]; const c=document.createElement('div'); c.className='card-product'; const img=document.createElement('img'); img.src=a.src; img.className='thumb'; img.alt=a.name; img.style.height='140px'; img.addEventListener('click', ()=> openProductModal(a)); c.appendChild(img); const info=document.createElement('div'); info.className='info'; info.innerHTML=`<div class=\"title\">${a.name}</div><div class=\"meta\"><span class=\"pill\">${a.badge}</span><span class=\"price\">${a.priceStr}</span></div>`; c.appendChild(info); const actions=document.createElement('div'); actions.className='actions'; const btn=document.createElement('button'); btn.className='btn btn-primary'; btn.type='button'; btn.textContent='Quick Add'; btn.addEventListener('click', (e)=>{ e.stopPropagation(); addToBundle(a); showToast('Added'); }); actions.appendChild(btn); c.appendChild(actions); picks.appendChild(c); });
+      $('#openFeatured').addEventListener('click', ()=>{ showPanel('tab-bundles'); showToast('Opened bundle editor'); }); }
 
-      const hero = document.createElement('div'); hero.className='hero';
-      const visual = document.createElement('div'); visual.className='hero-visual'; const visImg = document.createElement('img'); visImg.src = assets[4].src; visImg.alt='Hero'; visual.appendChild(visImg);
-      const side = document.createElement('div'); side.className='hero-side';
-      const concierge = document.createElement('div'); concierge.className='card-small'; const hcons = document.createElement('h4'); hcons.textContent='AI Concierge'; concierge.appendChild(hcons); const scons = document.createElement('div'); scons.className='muted'; scons.textContent = 'Welcome back — your Focus Score today is 72'; concierge.appendChild(scons);
-      const featured = document.createElement('div'); featured.className='card-small'; const hfeat = document.createElement('h4'); hfeat.textContent='Featured Bundle'; featured.appendChild(hfeat); const sfeat = document.createElement('div'); sfeat.className='muted'; sfeat.textContent = 'Focus & Study Pack — NeuroFocus + Cogniva + NeuroTrainer'; featured.appendChild(sfeat); const btnWrap = document.createElement('div'); btnWrap.className='mt-12'; const of = document.createElement('button'); of.className='btn btn-primary'; of.type='button'; of.id='openFeatured'; of.textContent='View Bundle'; btnWrap.appendChild(of); featured.appendChild(btnWrap);
+    // gallery render
+    function renderGallery(){ if(!galleryGrid) return; galleryGrid.innerHTML=''; assets.forEach(a=>{ const g=document.createElement('figure'); g.className='gallery-item'; const img = document.createElement('img'); img.src=a.src; img.alt=a.name; img.addEventListener('click', ()=> openProductModal(a)); g.appendChild(img); galleryGrid.appendChild(g); }); }
 
-      side.appendChild(concierge); side.appendChild(featured);
-      hero.appendChild(visual); hero.appendChild(side);
-      home.appendChild(hero);
+    // seed and init
+    function seedDemo(){ if(!bundles.length){ bundles = [{ name:'Focus Pack', items:[ {name:'NeuroFocus Capsules', qty:1}, {name:'Cogniva Gummies', qty:1}, {name:'NeuroTrainer Handheld', qty:1} ] }]; }
+      if(!cart.length) { cart = []; }
+      persist(); }
 
-      const h3 = document.createElement('h3'); h3.className='section-title'; h3.textContent='Top Picks'; home.appendChild(h3);
-      const picks = document.createElement('div'); picks.className='catalog-grid'; picks.id='homePicks'; picks.style.gridTemplateColumns='repeat(3,1fr)'; home.appendChild(picks);
-
-      [0,1,5].forEach(i=>{ const a=assets[i]; const c=document.createElement('div'); c.className='card-product'; const img=document.createElement('img'); img.src=a.src; img.className='thumb'; img.alt=a.name; img.style.height='140px'; img.addEventListener('click', ()=> openProductModal(a)); c.appendChild(img); const info=document.createElement('div'); info.className='info'; info.innerHTML=`<div class=\"title\">${a.name}</div><div class=\"meta\"><span class=\"pill\">${a.badge}</span><span class=\"price\">${a.price}</span></div>`; c.appendChild(info); const actions=document.createElement('div'); actions.className='actions'; const btn=document.createElement('button'); btn.className='btn btn-primary'; btn.type='button'; btn.textContent='Quick Add'; btn.addEventListener('click', (e)=>{ e.stopPropagation(); addBundleItem(a); showToast('Added'); }); actions.appendChild(btn); c.appendChild(actions); picks.appendChild(c); });
-
-      $('#openFeatured').addEventListener('click', ()=>{ showPanel('tab-bundles'); showToast('Opened bundle editor'); });
+    function init(){ seedDemo(); renderBadgeFilters(); renderHome(); renderCatalog(); renderSaved(); renderGallery(); syncPanel(); renderCheckout(); updateCartCount(); renderSaved(); // default to catalog
+      showPanel('tab-catalog');
+      // wire sort and search
+      $('#catalogSort').addEventListener('change', (e)=>{ const s = e.target.value; const activeChip = document.querySelector('.chip.active'); const badge = activeChip && activeChip.textContent !== 'All' ? activeChip.textContent : null; renderCatalog($('.site-search').value, badge, s); });
+      $('.site-search').addEventListener('input', (e)=>{ const activeChip = document.querySelector('.chip.active'); const badge = activeChip && activeChip.textContent !== 'All' ? activeChip.textContent : null; renderCatalog(e.target.value, badge, $('#catalogSort').value); });
+      // header cart click opens checkout
+      document.querySelector('.cart-btn').addEventListener('click', ()=>{ showPanel('tab-checkout'); });
+      // accessible keyboard
+      document.addEventListener('keydown', (e)=>{ if(e.key==='/' ){ e.preventDefault(); $('.site-search').focus(); } if(e.key==='Escape'){ const lb = $('#nb-lightbox'); if(lb && lb.style.display==='flex') { lb.style.display='none'; } } });
     }
 
-    // start
     init();
 
-    // update dashboard when items change
-    const observer = new MutationObserver(()=>{ renderDashboard(); }); observer.observe(bundleContents, {childList:true});
+    // helpers
+    function renderSaved(){ savedList.innerHTML=''; bundles.forEach((b,i)=>{ const el = document.createElement('div'); el.className='card-product'; el.style.justifyContent='space-between'; el.innerHTML = `<div><strong>${b.name}</strong><div class=\"muted\" style=\"font-size:12px\">${b.items.map(it=> it.name).join(', ')}</div></div><div class=\"saved-controls\"></div>`; const controls = el.querySelector('.saved-controls'); const load = document.createElement('button'); load.className='btn btn-ghost'; load.type='button'; load.textContent='Load'; load.addEventListener('click', ()=>{ bundleArea.innerHTML=''; b.items.forEach(it=>{ const asset = assets.find(a=> a.name===it.name); if(asset) addToBundle(asset, it.qty || 1); }); syncPanel(); updateCheckout(); showToast('Loaded'); }); const del = document.createElement('button'); del.className='btn btn-ghost'; del.type='button'; del.textContent='Delete'; del.addEventListener('click', ()=>{ bundles.splice(i,1); persist(); renderSaved(); showToast('Deleted'); }); controls.appendChild(load); controls.appendChild(del); savedList.appendChild(el); }); }
+
+    function updateCheckout(){ // compute summary from bundle area for display in checkout summary and dashboard
+      const rows = Array.from(bundleArea.querySelectorAll('.bundle-row')); const names = rows.map(r=> r.getAttribute('data-product')); const qtys = rows.map(r=> parseInt(r.querySelector('.qty-input')?.value||1)); const checkoutSummary = $('#checkoutTotal'); // not used directly here
+      // keep checkout tab cart separate; update dashboard
+      renderDashboard(); }
+
+    function renderDashboard(){ const dash = $('#tab-dashboard'); if(!dash) return; const savedCount = bundles.length; const itemsCount = bundleArea.querySelectorAll('.bundle-row').length; dash.innerHTML = '<h3 class="section-title">Dashboard</h3><div style="display:flex;gap:12px"><div style="flex:1;padding:12px;border-radius:10px;background:var(--card);box-shadow:var(--shadow)"><div style="font-weight:700">Saved Bundles</div><div style="font-size:24px">'+savedCount+'</div></div><div style="flex:1;padding:12px;border-radius:10px;background:var(--card);box-shadow:var(--shadow)"><div style="font-weight:700">Items in Bundle</div><div style="font-size:24px">'+itemsCount+'</div></div></div>'; }
+
   })();
   </script>
 </body>
