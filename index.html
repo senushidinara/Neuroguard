@@ -1027,7 +1027,7 @@ body {
     ev.preventDefault();
     const id = ev.dataTransfer.getData('text/plain');
     const sourceEl = document.getElementById(id);
-    if(!sourceEl) return;
+    if(!sourceEl) { showToast('Could not add item to bundle'); return; }
 
     // create a clean bundle item
     const bundleItem = document.createElement('div');
@@ -1043,11 +1043,12 @@ body {
     const label = document.createElement('div'); label.style.flex='1'; label.style.margin='0 8px'; label.textContent = bundleItem.getAttribute('data-product');
     bundleItem.appendChild(label);
 
-    const removeBtn = document.createElement('button'); removeBtn.className='export-button'; removeBtn.textContent='Remove'; removeBtn.addEventListener('click', ()=>{ bundleItem.remove(); updateCheckout(); });
+    const removeBtn = document.createElement('button'); removeBtn.className='export-button'; removeBtn.textContent='Remove'; removeBtn.addEventListener('click', ()=>{ bundleItem.remove(); updateCheckout(); showToast('Removed from bundle'); });
     bundleItem.appendChild(removeBtn);
 
     bundleContents.appendChild(bundleItem);
     updateCheckout();
+    showToast('Added to bundle');
   }
   bundleDropzone.addEventListener('dragover', allowDrop);
   bundleDropzone.addEventListener('drop', onDrop);
