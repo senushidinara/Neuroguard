@@ -984,6 +984,16 @@ body {
   .submit-button, .export-button, .icon-btn { cursor:pointer; }
   .product-thumb { border:2px solid transparent; }
   .product-card-compact:hover .product-thumb { border-color: rgba(99,102,241,0.3); }
+  /* Boutique card */
+  .boutique-card { display:flex; gap:12px; align-items:center; padding:12px; background:var(--bg-primary); border-radius:12px; box-shadow: 0 8px 20px rgba(15,23,42,0.06); }
+  .boutique-card .product-info { display:flex; flex-direction:column; gap:6px; }
+  .product-title { font-weight:700; font-size:16px; color:var(--text-primary); }
+  .product-meta { display:flex; gap:8px; align-items:center; }
+  .product-badge { background: linear-gradient(90deg,var(--secondary-color),var(--primary-color)); color:#fff; padding:4px 8px; border-radius:999px; font-size:12px; font-weight:700; }
+  .product-price { font-weight:800; color:var(--primary-color); margin-left:6px; }
+  .product-actions { margin-left:auto; display:flex; gap:8px; }
+  .submit-button { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; border: none; padding: 10px 14px; border-radius: 10px; font-size: 14px; }
+  .export-button { padding:8px 10px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; }
   /* Improve overall contrast for text */
   .panel-desc, .gallery-item figcaption, .product-caption { color:var(--text-primary); }
   /* Site header */
