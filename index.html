@@ -526,7 +526,8 @@
       document.getElementById('startReaction') && document.getElementById('startReaction').addEventListener('click', ()=> startReaction());
       document.getElementById('startMemoryGame') && document.getElementById('startMemoryGame').addEventListener('click', ()=> startMemoryGame());
 
-      renderHome(); renderCatalog(); refreshSavedList(); renderGallery(); updateDashboard(); }
+      renderHome(); renderCatalog(); refreshSavedList(); renderGallery(); renderLookbook(); updateDashboard(); // ensure hero uses a product visual (do not replace core products with attachments)
+      const heroImg = document.querySelector('.hero-visual img'); if(heroImg && assets[0]) heroImg.src = assets[0].src; showPanel('tab-catalog'); }
 
     init();
 
