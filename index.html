@@ -2219,5 +2219,38 @@ document.addEventListener('DOMContentLoaded', function(){
   }catch(err){ console.error('nav init failed', err); }
 });
 </script>
+<script>
+// Fallback direct navigation handler — last-resort to ensure tabs work
+(function(){
+  try{
+    function directActivate(id){
+      if(!id) return;
+      document.querySelectorAll('.nb-panel').forEach(p=> p.hidden = true);
+      const panel = document.getElementById(id);
+      if(panel) panel.hidden = false;
+      // update tab buttons and site menu active states
+      document.querySelectorAll('.nb-tab').forEach(t=> t.classList.toggle('active', t.getAttribute('data-target')===id));
+      document.querySelectorAll('.nb-tab').forEach(t=> t.setAttribute('aria-selected', t.getAttribute('data-target')===id ? 'true' : 'false'));
+      document.querySelectorAll('.site-menu a').forEach(a=> a.classList.toggle('active', a.getAttribute('data-target')===id));
+      // scroll into view
+      panel && panel.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    const triggers = Array.from(document.querySelectorAll('.site-menu a[data-target], .nb-tab[data-target]'));
+    triggers.forEach(el => el.addEventListener('click', function(evt){
+      evt.preventDefault();
+      const id = el.getAttribute('data-target');
+      directActivate(id);
+    }));
+
+    // Ensure header is clickable (bring to front)
+    const header = document.querySelector('.site-header');
+    if(header){ header.style.zIndex = 1000; header.style.position = 'relative'; }
+
+    // Activate home panel by default
+    directActivate('tab-home');
+  }catch(err){ console.error('direct nav init failed', err); }
+})();
+</script>
 </body>
 </html>
