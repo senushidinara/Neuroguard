@@ -934,8 +934,19 @@ body {
 
     <div id="nb-lightbox" class="nb-lightbox" hidden>
       <button id="lightboxClose" class="lightbox-close">×</button>
+      <button id="lightboxPrev" class="lightbox-nav" aria-label="Previous">‹</button>
       <img id="lightboxImg" src="" alt="" />
+      <button id="lightboxNext" class="lightbox-nav" aria-label="Next">›</button>
       <div id="lightboxCaption" class="lightbox-caption"></div>
+    </div>
+
+    <div id="ar-modal" class="nb-lightbox" hidden>
+      <div style="background:rgba(0,0,0,0.85); padding:20px; border-radius:12px; color:#fff; text-align:center; max-width:520px;">
+        <h3>AR Preview Placeholder</h3>
+        <p>This is an AR placeholder. Integrate WebXR or ARKit/ARCore to render products in AR. For now, this simulates AR preview of your bundle.</p>
+        <div id="arPreviewContent" style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center;"></div>
+        <button id="arClose" class="submit-button" style="margin-top:12px;">Close</button>
+      </div>
     </div>
 
   </div>
