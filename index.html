@@ -10,28 +10,32 @@
     :root{
       --bg:#f8fafc; --card:#ffffff; --muted:#64748b; --accent:#6366f1; --accent2:#8b5cf6; --radius:12px;
       --shadow: 0 6px 18px rgba(15,23,42,0.08);
+      --header-height:72px;
     }
 
     html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;color:#0f172a;background:linear-gradient(180deg,#eef2ff 0%, #f8fafc 100%);} 
+    body{padding-top:var(--header-height);}
 
     /* Header */
-    .site-header{background:transparent;padding:14px 20px;position:sticky;top:0;z-index:40}
-    .site-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:16px}
+    .site-header{position:fixed;inset:0 auto auto 0;height:var(--header-height);left:0;right:0;top:0;z-index:60;display:flex;align-items:center;background:rgba(255,255,255,0.7);backdrop-filter:blur(6px);border-bottom:1px solid rgba(15,23,42,0.04);}
+    .site-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:0 20px;width:100%}
     .brand{font-weight:700;font-size:20px;color:#0f172a}
     .site-menu{display:flex;gap:8px;margin-left:20px}
     .site-menu a{padding:8px 12px;border-radius:10px;text-decoration:none;color:var(--muted);font-weight:600}
+    .site-menu a:hover{background:rgba(99,102,241,0.08);color:var(--accent)}
     .site-menu a.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff}
     .site-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
     .site-search{padding:8px;border-radius:10px;border:1px solid rgba(15,23,42,0.06)}
 
     /* Layout */
-    .container{max-width:1200px;margin:20px auto;display:grid;grid-template-columns:1fr 360px;gap:20px;padding:0 20px}
-    .panel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;border:1px solid rgba(15,23,42,0.03)}
+    .container{max-width:1200px;margin:20px auto;display:grid;grid-template-columns:1fr 360px;gap:20px;padding:0 20px;align-items:start}
+    .panel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;border:1px solid rgba(15,23,42,0.03);overflow:visible}
 
     /* Left column wrapper for switchable panels */
     .main-wrap{display:flex;flex-direction:column;gap:18px}
     .section-title{margin-top:0}
     .muted{color:var(--muted)}
+    .mt-12{margin-top:12px}
 
     /* Catalog */
     .catalog-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
@@ -49,11 +53,14 @@
     .btn-ghost{background:#fff;border:1px solid rgba(15,23,42,0.06);color:var(--muted)}
 
     /* Sidebar */
+    .sidebar{position:relative}
     .sidebar .sidebar-title{font-weight:700;margin-bottom:12px}
+    .sidebar .controls-row{display:flex;gap:8px;margin-top:12px}
     .bundle-area{min-height:120px;padding:8px;border-radius:8px;background:#f1f5f9;border:1px dashed rgba(15,23,42,0.04);display:flex;flex-direction:column;gap:8px}
     .bundle-row{display:flex;gap:8px;align-items:center;padding:8px;background:#fff;border-radius:8px;border:1px solid rgba(15,23,42,0.03)}
     .bundle-row img{width:48px;height:48px;border-radius:6px;object-fit:cover}
     .bundle-row .bundle-label{flex:1}
+    .sidebar.sticky{position:sticky;top:calc(var(--header-height) + 12px);align-self:start}
 
     /* Gallery */
     .gallery-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
@@ -65,12 +72,14 @@
     .hero-visual img{width:100%;height:220px;object-fit:cover;display:block}
     .hero-side{width:320px;display:flex;flex-direction:column;gap:8px}
     .card-small{padding:12px;background:var(--card);border-radius:10px;box-shadow:var(--shadow)}
+    .card-small h4{margin:0;font-weight:700}
 
     /* Lightbox and AR modal */
     .lightbox-overlay{display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:9998}
     .lightbox-sheet{background:#fff;padding:12px;border-radius:10px;max-width:90%;max-height:80%;overflow:auto}
     .lightbox-img{width:100%;height:auto;border-radius:8px;display:block;margin-bottom:8px}
     .lightbox-caption{color:var(--muted);white-space:pre-wrap}
+    .lightbox-close{float:right;border:none;background:transparent;font-size:18px;cursor:pointer}
 
     .ar-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);z-index:9997}
     .ar-sheet{background:#fff;padding:16px;border-radius:10px;max-width:720px;width:90%}
@@ -78,11 +87,12 @@
 
     /* Toasts */
     #nb-toast-container{position:fixed;right:20px;bottom:20px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end}
+    .toast{transition:opacity .25s ease}
 
     /* Utilities */
     .hidden{display:none !important}
 
-    @media (max-width:1024px){.container{grid-template-columns:1fr;}.gallery-grid{grid-template-columns:repeat(2,1fr)}.catalog-grid{grid-template-columns:1fr}.hero-side{width:auto}}
+    @media (max-width:1024px){.container{grid-template-columns:1fr;}.gallery-grid{grid-template-columns:repeat(2,1fr)}.catalog-grid{grid-template-columns:1fr}.hero-side{width:auto}.site-inner{padding:0 12px}}
   </style>
 </head>
 <body>
@@ -121,7 +131,7 @@
         <section id="tab-bundles" class="hidden">
           <h3 class="section-title">Bundle Creator</h3>
           <p class="muted">Use "Add to Bundle" from catalog to build a bundle, then save or optimize it.</p>
-          <div style="margin-top:12px">
+          <div class="mt-12">
             <h4>Current Bundle</h4>
             <div class="bundle-area" id="bundleContentsPanel"></div>
           </div>
@@ -149,17 +159,17 @@
       </div>
     </div>
 
-    <aside class="panel sidebar">
+    <aside class="panel sidebar sticky">
       <div class="sidebar-title">Your Bundle</div>
       <div class="bundle-area" id="bundleContents"><div class="muted">(empty)</div></div>
-      <div style="display:flex;gap:8px;margin-top:12px">
+      <div class="controls-row">
         <button id="optimizeBundle" class="btn btn-primary">Auto-optimize</button>
         <button id="saveBundle" class="btn btn-ghost">Save</button>
         <button id="arPreview" class="btn btn-ghost">AR Preview</button>
       </div>
-      <div style="margin-top:12px;">
-        <h4 style="margin:8px 0">Saved Bundles</h4>
-        <div id="savedBundlesList" style="display:flex;flex-direction:column;gap:8px"></div>
+      <div class="mt-12">
+        <h4>Saved Bundles</h4>
+        <div id="savedBundlesList" class="saved-list"></div>
       </div>
     </aside>
   </main>
@@ -167,17 +177,17 @@
   <!-- Lightbox -->
   <div id="nb-lightbox" class="lightbox-overlay" aria-hidden="true">
     <div class="lightbox-sheet">
-      <button id="lightboxClose" class="btn" style="float:right;border:none;background:transparent;font-size:18px;cursor:pointer">×</button>
+      <button id="lightboxClose" class="lightbox-close">×</button>
       <img id="lightboxImg" class="lightbox-img" src="" alt="">
       <div id="lightboxCaption" class="lightbox-caption"></div>
     </div>
   </div>
 
   <!-- AR Modal -->
-  <div id="ar-modal" class="ar-modal" hidden>
+  <div id="ar-modal" class="ar-modal hidden">
     <div class="ar-sheet">
-      <div style="display:flex;justify-content:space-between;align-items:center"><strong>AR Preview</strong><button id="arClose" class="btn btn-ghost">Close</button></div>
-      <div class="ar-grid" id="arPreviewContent" style="margin-top:12px"></div>
+      <div class="controls-row" style="justify-content:space-between;align-items:center"><strong>AR Preview</strong><button id="arClose" class="btn btn-ghost">Close</button></div>
+      <div class="ar-grid mt-12" id="arPreviewContent"></div>
     </div>
   </div>
 
@@ -204,7 +214,8 @@
     // NAV: wire header links
     $all('.site-menu a[data-target]').forEach(a=> a.addEventListener('click', e=>{ e.preventDefault(); const t=a.getAttribute('data-target'); showPanel(t); showToast(document.querySelector('#'+t+' .section-title')?.textContent || 'Opened'); }));
 
-    function showPanel(id){ const panels = document.querySelectorAll('#mainPanels > section'); panels.forEach(p=> p.classList.add('hidden')); const el=document.getElementById(id); if(el) el.classList.remove('hidden'); $all('.site-menu a').forEach(x=> x.classList.toggle('active', x.getAttribute('data-target')===id)); }
+    function showPanel(id){ const panels = document.querySelectorAll('#mainPanels > section'); panels.forEach(p=> p.classList.add('hidden')); const el=document.getElementById(id); if(el) el.classList.remove('hidden'); $all('.site-menu a').forEach(x=> x.classList.toggle('active', x.getAttribute('data-target')===id)); // ensure header doesn't overlap
+      window.scrollTo({ top: 0, behavior: 'smooth' }); }
     showPanel('tab-home');
 
     // Elements
@@ -221,8 +232,14 @@
     // Add to bundle helper
     function createBundleRow(asset){ const item=document.createElement('div'); item.className='bundle-row'; item.setAttribute('data-product', asset.name); const img=document.createElement('img'); img.src=asset.src; img.alt=asset.name; item.appendChild(img); const lbl=document.createElement('div'); lbl.className='bundle-label'; lbl.textContent=asset.name; item.appendChild(lbl); const btn=document.createElement('button'); btn.className='btn btn-ghost'; btn.textContent='Remove'; btn.addEventListener('click', ()=>{ item.remove(); updateCheckout(); showToast('Removed'); }); item.appendChild(btn); return item; }
 
-    function addBundleItem(asset){ const item = createBundleRow(asset); bundleContents.appendChild(item); const copy = item.cloneNode(true); // wire clone remove
-    copy.querySelector('button').addEventListener('click', ()=>{ copy.remove(); updateCheckout(); showToast('Removed'); }); bundleContentsPanel.appendChild(copy); updateCheckout(); }
+    function addBundleItem(asset){ const item = createBundleRow(asset); // avoid duplicates
+      const exists = Array.from(bundleContents.querySelectorAll('.bundle-row')).some(r=> r.getAttribute('data-product')===asset.name);
+      if(exists){ showToast('Already in bundle'); return; }
+      bundleContents.appendChild(item);
+      const copy = item.cloneNode(true); // wire clone remove
+      copy.querySelector('button').addEventListener('click', ()=>{ copy.remove(); updateCheckout(); showToast('Removed'); });
+      bundleContentsPanel.appendChild(copy);
+      updateCheckout(); }
 
     // Render catalog and gallery
     function renderCatalog(filter=''){ if(!catalogGrid) return; catalogGrid.innerHTML=''; galleryGrid && (galleryGrid.innerHTML=''); const f=filter.trim().toLowerCase(); assets.filter(a=> !f || a.name.toLowerCase().includes(f) || a.badge.toLowerCase().includes(f)).forEach(a=>{
@@ -231,8 +248,8 @@
       const info=document.createElement('div'); info.className='info'; info.innerHTML=`<div class=\"title\">${a.name}</div><div class=\"meta\"><span class=\"pill\">${a.badge}</span><span class=\"price\">${a.price}</span></div><div class=\"muted\" style=\"margin-top:6px;font-size:13px\">${a.desc}</div>`;
       card.appendChild(info);
       const actions=document.createElement('div'); actions.className='actions';
-      const addBundle=document.createElement('button'); addBundle.className='btn btn-ghost'; addBundle.textContent='Add to Bundle'; addBundle.addEventListener('click', ()=>{ addBundleItem(a); showToast('Added to bundle'); });
-      const addCart=document.createElement('button'); addCart.className='btn btn-primary'; addCart.textContent='Add to Cart'; addCart.addEventListener('click', ()=>{ addBundleItem(a); showToast('Added to cart'); });
+      const addBundle=document.createElement('button'); addBundle.className='btn btn-ghost'; addBundle.textContent='Add to Bundle'; addBundle.addEventListener('click', (e)=>{ e.stopPropagation(); addBundleItem(a); showToast('Added to bundle'); });
+      const addCart=document.createElement('button'); addCart.className='btn btn-primary'; addCart.textContent='Add to Cart'; addCart.addEventListener('click', (e)=>{ e.stopPropagation(); addBundleItem(a); showToast('Added to cart'); });
       actions.appendChild(addBundle); actions.appendChild(addCart);
       card.appendChild(actions);
       catalogGrid.appendChild(card);
@@ -247,7 +264,7 @@
     $('#lightboxClose').addEventListener('click', ()=>{ const lb=$('#nb-lightbox'); lb.style.display='none'; lb.setAttribute('aria-hidden','true'); });
 
     // Saved bundles
-    function renderSaved(){ savedList.innerHTML=''; const s=JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]'); s.forEach((b,i)=>{ const el=document.createElement('div'); el.className='card-product'; el.style.justifyContent='space-between'; el.innerHTML=`<div><strong>${b.name}</strong><div class=\"muted\" style=\"font-size:12px\">${b.items.join(', ')}</div></div><div style=\"display:flex;gap:6px\"></div>`; const btns = el.querySelector('div:last-child'); const loadBtn = document.createElement('button'); loadBtn.className='btn btn-ghost'; loadBtn.textContent='Load'; const delBtn = document.createElement('button'); delBtn.className='btn btn-ghost'; delBtn.textContent='Delete'; btns.appendChild(loadBtn); btns.appendChild(delBtn); savedList.appendChild(el);
+    function renderSaved(){ savedList.innerHTML=''; const s=JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]'); s.forEach((b,i)=>{ const el=document.createElement('div'); el.className='card-product'; el.style.justifyContent='space-between'; el.innerHTML=`<div><strong>${b.name}</strong><div class=\"muted\" style=\"font-size:12px\">${b.items.join(', ')}</div></div><div class=\"saved-controls\"></div>`; const btns = el.querySelector('.saved-controls'); const loadBtn = document.createElement('button'); loadBtn.className='btn btn-ghost'; loadBtn.textContent='Load'; const delBtn = document.createElement('button'); delBtn.className='btn btn-ghost'; delBtn.textContent='Delete'; btns.appendChild(loadBtn); btns.appendChild(delBtn); savedList.appendChild(el);
         loadBtn.addEventListener('click', ()=>{ bundleContents.innerHTML=''; bundleContentsPanel.innerHTML=''; b.items.forEach(n=>{ const found = assets.find(x=>x.name===n); if(found) addBundleItem(found); }); updateCheckout(); showToast('Loaded'); });
         delBtn.addEventListener('click', ()=>{ s.splice(i,1); localStorage.setItem('nb_saved_bundles', JSON.stringify(s)); renderSaved(); showToast('Deleted'); }); }); }
 
@@ -256,8 +273,8 @@
     $('#saveBundle').addEventListener('click', ()=>{ const items = Array.from(bundleContents.querySelectorAll('.bundle-row')).map(i=>i.getAttribute('data-product')); if(!items.length){ showToast('No items'); return; } const name = prompt('Bundle name','My Bundle'); if(!name) return; const s = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]'); s.push({name, items}); localStorage.setItem('nb_saved_bundles', JSON.stringify(s)); renderSaved(); showToast('Saved'); });
 
     // AR preview
-    $('#arPreview').addEventListener('click', ()=>{ const preview = $('#arPreviewContent'); if(!preview) return; preview.innerHTML=''; const imgs = Array.from(bundleContents.querySelectorAll('.bundle-row img')).map(i=>i.src); if(!imgs.length) preview.textContent='No items to preview'; else imgs.forEach(u=>{ const im=document.createElement('img'); im.src=u; im.style.width='80px'; im.style.height='80px'; im.style.objectFit='cover'; im.style.borderRadius='6px'; preview.appendChild(im); }); $('#ar-modal').hidden=false; $('#ar-modal').style.display='flex'; });
-    $('#arClose') && $('#arClose').addEventListener('click', ()=>{ document.getElementById('ar-modal').hidden=true; document.getElementById('ar-modal').style.display='none'; });
+    $('#arPreview').addEventListener('click', ()=>{ const preview = $('#arPreviewContent'); if(!preview) return; preview.innerHTML=''; const imgs = Array.from(bundleContents.querySelectorAll('.bundle-row img')).map(i=>i.src); if(!imgs.length) preview.textContent='No items to preview'; else imgs.forEach(u=>{ const im=document.createElement('img'); im.src=u; im.style.width='80px'; im.style.height='80px'; im.style.objectFit='cover'; im.style.borderRadius='6px'; preview.appendChild(im); }); $('#ar-modal').classList.remove('hidden'); $('#ar-modal').style.display='flex'; });
+    $('#arClose') && $('#arClose').addEventListener('click', ()=>{ const m = document.getElementById('ar-modal'); m.classList.add('hidden'); m.style.display='none'; });
 
     // search handler
     $('.site-search').addEventListener('input', function(){ renderCatalog(this.value); });
@@ -273,17 +290,17 @@
       const hero = document.createElement('div'); hero.className='hero';
       const visual = document.createElement('div'); visual.className='hero-visual'; const visImg = document.createElement('img'); visImg.src = assets[4].src; visImg.alt='Hero'; visual.appendChild(visImg);
       const side = document.createElement('div'); side.className='hero-side';
-      const concierge = document.createElement('div'); concierge.className='card-small'; const hcons = document.createElement('div'); hcons.style.fontWeight='700'; hcons.textContent='AI Concierge'; concierge.appendChild(hcons); const scons = document.createElement('div'); scons.className='muted'; scons.style.fontSize='13px'; scons.style.marginTop='6px'; scons.innerHTML = 'Welcome back — your Focus Score today is <strong style="color:var(--accent)">72</strong>'; concierge.appendChild(scons);
-      const featured = document.createElement('div'); featured.className='card-small'; const hfeat = document.createElement('div'); hfeat.style.fontWeight='700'; hfeat.textContent='Featured Bundle'; featured.appendChild(hfeat); const sfeat = document.createElement('div'); sfeat.className='muted'; sfeat.style.fontSize='13px'; sfeat.style.marginTop='6px'; sfeat.textContent = 'Focus & Study Pack — NeuroFocus + Cogniva + NeuroTrainer'; featured.appendChild(sfeat); const btnWrap = document.createElement('div'); btnWrap.style.marginTop='8px'; const of = document.createElement('button'); of.className='btn btn-primary'; of.id='openFeatured'; of.textContent='View Bundle'; btnWrap.appendChild(of); featured.appendChild(btnWrap);
+      const concierge = document.createElement('div'); concierge.className='card-small'; const hcons = document.createElement('h4'); hcons.textContent='AI Concierge'; concierge.appendChild(hcons); const scons = document.createElement('div'); scons.className='muted'; scons.textContent = 'Welcome back — your Focus Score today is 72'; concierge.appendChild(scons);
+      const featured = document.createElement('div'); featured.className='card-small'; const hfeat = document.createElement('h4'); hfeat.textContent='Featured Bundle'; featured.appendChild(hfeat); const sfeat = document.createElement('div'); sfeat.className='muted'; sfeat.textContent = 'Focus & Study Pack — NeuroFocus + Cogniva + NeuroTrainer'; featured.appendChild(sfeat); const btnWrap = document.createElement('div'); btnWrap.className='mt-12'; const of = document.createElement('button'); of.className='btn btn-primary'; of.id='openFeatured'; of.textContent='View Bundle'; btnWrap.appendChild(of); featured.appendChild(btnWrap);
 
       side.appendChild(concierge); side.appendChild(featured);
       hero.appendChild(visual); hero.appendChild(side);
       home.appendChild(hero);
 
-      const h3 = document.createElement('h3'); h3.className='section-title'; h3.style.marginTop='18px'; h3.textContent='Top Picks'; home.appendChild(h3);
+      const h3 = document.createElement('h3'); h3.className='section-title'; h3.textContent='Top Picks'; home.appendChild(h3);
       const picks = document.createElement('div'); picks.className='catalog-grid'; picks.id='homePicks'; picks.style.gridTemplateColumns='repeat(3,1fr)'; home.appendChild(picks);
 
-      [0,1,5].forEach(i=>{ const a=assets[i]; const c=document.createElement('div'); c.className='card-product'; c.style.padding='8px'; const img=document.createElement('img'); img.src=a.src; img.className='thumb'; img.style.width='100%'; img.style.height='140px'; img.style.objectFit='cover'; img.style.borderRadius='8px'; c.appendChild(img); const info=document.createElement('div'); info.className='info'; info.innerHTML=`<div class=\"title\">${a.name}</div><div class=\"meta\"><span class=\"pill\">${a.badge}</span><span class=\"price\">${a.price}</span></div>`; c.appendChild(info); const actions=document.createElement('div'); actions.className='actions'; const btn=document.createElement('button'); btn.className='btn btn-primary'; btn.textContent='Quick Add'; btn.addEventListener('click', ()=>{ addBundleItem(a); showToast('Added'); }); actions.appendChild(btn); c.appendChild(actions); picks.appendChild(c); });
+      [0,1,5].forEach(i=>{ const a=assets[i]; const c=document.createElement('div'); c.className='card-product'; const img=document.createElement('img'); img.src=a.src; img.className='thumb'; img.alt=a.name; img.style.height='140px'; img.addEventListener('click', ()=> openProductModal(a)); c.appendChild(img); const info=document.createElement('div'); info.className='info'; info.innerHTML=`<div class=\"title\">${a.name}</div><div class=\"meta\"><span class=\"pill\">${a.badge}</span><span class=\"price\">${a.price}</span></div>`; c.appendChild(info); const actions=document.createElement('div'); actions.className='actions'; const btn=document.createElement('button'); btn.className='btn btn-primary'; btn.textContent='Quick Add'; btn.addEventListener('click', (e)=>{ e.stopPropagation(); addBundleItem(a); showToast('Added'); }); actions.appendChild(btn); c.appendChild(actions); picks.appendChild(c); });
 
       $('#openFeatured').addEventListener('click', ()=>{ showPanel('tab-bundles'); showToast('Opened bundle editor'); });
     }
