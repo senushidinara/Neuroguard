@@ -163,9 +163,9 @@
       <div class="sidebar-title">Your Bundle</div>
       <div class="bundle-area" id="bundleContents"><div class="muted">(empty)</div></div>
       <div class="controls-row">
-        <button id="optimizeBundle" class="btn btn-primary">Auto-optimize</button>
-        <button id="saveBundle" class="btn btn-ghost">Save</button>
-        <button id="arPreview" class="btn btn-ghost">AR Preview</button>
+        <button id="optimizeBundle" class="btn btn-primary" type="button">Auto-optimize</button>
+        <button id="saveBundle" class="btn btn-ghost" type="button">Save</button>
+        <button id="arPreview" class="btn btn-ghost" type="button">AR Preview</button>
       </div>
       <div class="mt-12">
         <h4>Saved Bundles</h4>
@@ -177,7 +177,7 @@
   <!-- Lightbox -->
   <div id="nb-lightbox" class="lightbox-overlay" aria-hidden="true">
     <div class="lightbox-sheet">
-      <button id="lightboxClose" class="lightbox-close">×</button>
+      <button id="lightboxClose" class="lightbox-close" type="button">×</button>
       <img id="lightboxImg" class="lightbox-img" src="" alt="">
       <div id="lightboxCaption" class="lightbox-caption"></div>
     </div>
@@ -186,7 +186,7 @@
   <!-- AR Modal -->
   <div id="ar-modal" class="ar-modal hidden">
     <div class="ar-sheet">
-      <div class="controls-row" style="justify-content:space-between;align-items:center"><strong>AR Preview</strong><button id="arClose" class="btn btn-ghost">Close</button></div>
+      <div class="controls-row" style="justify-content:space-between;align-items:center"><strong>AR Preview</strong><button id="arClose" class="btn btn-ghost" type="button">Close</button></div>
       <div class="ar-grid mt-12" id="arPreviewContent"></div>
     </div>
   </div>
@@ -211,7 +211,7 @@
 
     function showToast(msg, t=1600){ const c = $('#nb-toast-container'); const el = document.createElement('div'); el.textContent=msg; el.className='toast'; el.style.background='linear-gradient(90deg,var(--accent),var(--accent2))'; el.style.color='#fff'; el.style.padding='8px 12px'; el.style.borderRadius='8px'; el.style.marginTop='8px'; el.style.boxShadow='var(--shadow)'; c.appendChild(el); setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),300); }, t); }
 
-    // NAV: wire header links
+    // NAV: wire header links (delegated too)
     $all('.site-menu a[data-target]').forEach(a=> a.addEventListener('click', e=>{ e.preventDefault(); const t=a.getAttribute('data-target'); showPanel(t); showToast(document.querySelector('#'+t+' .section-title')?.textContent || 'Opened'); }));
 
     function showPanel(id){ const panels = document.querySelectorAll('#mainPanels > section'); panels.forEach(p=> p.classList.add('hidden')); const el=document.getElementById(id); if(el) el.classList.remove('hidden'); $all('.site-menu a').forEach(x=> x.classList.toggle('active', x.getAttribute('data-target')===id)); window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -228,14 +228,17 @@
     function updateCheckout(){ const count = bundleContents.querySelectorAll('.bundle-row').length; const names = Array.from(bundleContents.querySelectorAll('.bundle-row')).map(r=> r.getAttribute('data-product')); if(checkoutSummary) checkoutSummary.textContent = count ? count + ' item(s) in bundle: ' + names.join(', ') : 'No items in cart.'; renderDashboard(); }
 
     // Add to bundle helper
-    function createBundleRow(asset){ const item=document.createElement('div'); item.className='bundle-row'; item.setAttribute('data-product', asset.name); const img=document.createElement('img'); img.src=asset.src; img.alt=asset.name; item.appendChild(img); const lbl=document.createElement('div'); lbl.className='bundle-label'; lbl.textContent=asset.name; item.appendChild(lbl); const btn=document.createElement('button'); btn.className='btn btn-ghost'; btn.textContent='Remove'; btn.addEventListener('click', ()=>{ item.remove(); updateCheckout(); showToast('Removed'); }); item.appendChild(btn); return item; }
+    function createBundleRow(asset){ const item=document.createElement('div'); item.className='bundle-row'; item.setAttribute('data-product', asset.name); const img=document.createElement('img'); img.src=asset.src; img.alt=asset.name; item.appendChild(img); const lbl=document.createElement('div'); lbl.className='bundle-label'; lbl.textContent=asset.name; item.appendChild(lbl); const btn=document.createElement('button'); btn.className='btn btn-ghost'; btn.type='button'; btn.textContent='Remove'; btn.addEventListener('click', ()=>{ item.remove(); updateCheckout(); showToast('Removed'); }); item.appendChild(btn); return item; }
 
     function addBundleItem(asset){ const item = createBundleRow(asset); // avoid duplicates
       const exists = Array.from(bundleContents.querySelectorAll('.bundle-row')).some(r=> r.getAttribute('data-product')===asset.name);
       if(exists){ showToast('Already in bundle'); return; }
+      // remove placeholder empty text if present
+      const placeholder = bundleContents.querySelector('.muted'); if(placeholder) placeholder.remove();
       bundleContents.appendChild(item);
       const copy = item.cloneNode(true); // wire clone remove
       copy.querySelector('button').addEventListener('click', ()=>{ copy.remove(); updateCheckout(); showToast('Removed'); });
+      // ensure bundle panel also reflects
       bundleContentsPanel.appendChild(copy);
       updateCheckout(); }
 
@@ -246,8 +249,8 @@
       const info=document.createElement('div'); info.className='info'; info.innerHTML=`<div class=\"title\">${a.name}</div><div class=\"meta\"><span class=\"pill\">${a.badge}</span><span class=\"price\">${a.price}</span></div><div class=\"muted\" style=\"margin-top:6px;font-size:13px\">${a.desc}</div>`;
       card.appendChild(info);
       const actions=document.createElement('div'); actions.className='actions';
-      const addBundle=document.createElement('button'); addBundle.className='btn btn-ghost'; addBundle.textContent='Add to Bundle'; addBundle.addEventListener('click', (e)=>{ e.stopPropagation(); addBundleItem(a); showToast('Added to bundle'); });
-      const addCart=document.createElement('button'); addCart.className='btn btn-primary'; addCart.textContent='Add to Cart'; addCart.addEventListener('click', (e)=>{ e.stopPropagation(); addBundleItem(a); showToast('Added to cart'); });
+      const addBundle=document.createElement('button'); addBundle.className='btn btn-ghost'; addBundle.type='button'; addBundle.textContent='Add to Bundle'; addBundle.addEventListener('click', (e)=>{ e.stopPropagation(); addBundleItem(a); showToast('Added to bundle'); });
+      const addCart=document.createElement('button'); addCart.className='btn btn-primary'; addCart.type='button'; addCart.textContent='Add to Cart'; addCart.addEventListener('click', (e)=>{ e.stopPropagation(); addBundleItem(a); showToast('Added to cart'); });
       actions.appendChild(addBundle); actions.appendChild(addCart);
       card.appendChild(actions);
       catalogGrid.appendChild(card);
@@ -257,12 +260,12 @@
 
     // Product modal / lightbox
     function openProductModal(a){ const lb=$('#nb-lightbox'); $('#lightboxImg').src=a.src; $('#lightboxCaption').textContent = a.name + ' — ' + a.price + '\n' + a.desc; lb.style.display='flex'; lb.setAttribute('aria-hidden','false'); // attach actions
-      const sheet = lb.querySelector('.lightbox-sheet'); let actions = sheet.querySelector('.lightbox-actions'); if(actions) actions.remove(); actions = document.createElement('div'); actions.className='lightbox-actions'; actions.style.display='flex'; actions.style.gap='8px'; actions.style.marginTop='8px'; const b1=document.createElement('button'); b1.className='btn btn-primary'; b1.textContent='Add to Bundle'; const b2=document.createElement('button'); b2.className='btn btn-ghost'; b2.textContent='Add to Cart'; b1.addEventListener('click', ()=>{ addBundleItem(a); showToast('Added to bundle'); }); b2.addEventListener('click', ()=>{ addBundleItem(a); showToast('Added to cart'); }); actions.appendChild(b1); actions.appendChild(b2); sheet.appendChild(actions); }
+      const sheet = lb.querySelector('.lightbox-sheet'); let actions = sheet.querySelector('.lightbox-actions'); if(actions) actions.remove(); actions = document.createElement('div'); actions.className='lightbox-actions'; actions.style.display='flex'; actions.style.gap='8px'; actions.style.marginTop='8px'; const b1=document.createElement('button'); b1.className='btn btn-primary'; b1.type='button'; b1.textContent='Add to Bundle'; const b2=document.createElement('button'); b2.className='btn btn-ghost'; b2.type='button'; b2.textContent='Add to Cart'; b1.addEventListener('click', ()=>{ addBundleItem(a); showToast('Added to bundle'); }); b2.addEventListener('click', ()=>{ addBundleItem(a); showToast('Added to cart'); }); actions.appendChild(b1); actions.appendChild(b2); sheet.appendChild(actions); }
 
     $('#lightboxClose').addEventListener('click', ()=>{ const lb=$('#nb-lightbox'); lb.style.display='none'; lb.setAttribute('aria-hidden','true'); });
 
     // Saved bundles
-    function renderSaved(){ savedList.innerHTML=''; const s=JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]'); s.forEach((b,i)=>{ const el=document.createElement('div'); el.className='card-product'; el.style.justifyContent='space-between'; el.innerHTML=`<div><strong>${b.name}</strong><div class=\"muted\" style=\"font-size:12px\">${b.items.join(', ')}</div></div><div class=\"saved-controls\"></div>`; const btns = el.querySelector('.saved-controls'); const loadBtn = document.createElement('button'); loadBtn.className='btn btn-ghost'; loadBtn.textContent='Load'; const delBtn = document.createElement('button'); delBtn.className='btn btn-ghost'; delBtn.textContent='Delete'; btns.appendChild(loadBtn); btns.appendChild(delBtn); savedList.appendChild(el);
+    function renderSaved(){ savedList.innerHTML=''; const s=JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]'); s.forEach((b,i)=>{ const el=document.createElement('div'); el.className='card-product'; el.style.justifyContent='space-between'; el.innerHTML=`<div><strong>${b.name}</strong><div class=\"muted\" style=\"font-size:12px\">${b.items.join(', ')}</div></div><div class=\"saved-controls\"></div>`; const btns = el.querySelector('.saved-controls'); const loadBtn = document.createElement('button'); loadBtn.className='btn btn-ghost'; loadBtn.type='button'; loadBtn.textContent='Load'; const delBtn = document.createElement('button'); delBtn.className='btn btn-ghost'; delBtn.type='button'; delBtn.textContent='Delete'; btns.appendChild(loadBtn); btns.appendChild(delBtn); savedList.appendChild(el);
         loadBtn.addEventListener('click', ()=>{ bundleContents.innerHTML=''; bundleContentsPanel.innerHTML=''; b.items.forEach(n=>{ const found = assets.find(x=>x.name===n); if(found) addBundleItem(found); }); updateCheckout(); showToast('Loaded'); });
         delBtn.addEventListener('click', ()=>{ s.splice(i,1); localStorage.setItem('nb_saved_bundles', JSON.stringify(s)); renderSaved(); showToast('Deleted'); }); }); }
 
@@ -290,7 +293,34 @@
 
     // init order: render content, seed, then show default tab
     function init(){ renderHome(); renderCatalog(); renderSaved(); seedDemo(); updateCheckout(); renderDashboard(); // default to catalog to show populated content
-      showPanel('tab-catalog'); }
+      showPanel('tab-catalog');
+      // accessibility: ensure every button has type and pointer cursor
+      document.querySelectorAll('button').forEach(b=>{ if(!b.type) b.type='button'; b.style.cursor='pointer'; });
+      // delegated click handler to make dynamically added elements interactive
+      document.addEventListener('click', function(e){
+        const menu = e.target.closest('[data-target]');
+        if(menu){ e.preventDefault(); showPanel(menu.getAttribute('data-target')); showToast(document.querySelector('#'+menu.getAttribute('data-target')+' .section-title')?.textContent || 'Opened'); return; }
+
+        const addBtn = e.target.closest('button');
+        if(addBtn){ const txt = addBtn.textContent.trim().toLowerCase();
+          // handle remove inside bundles
+          if(txt === 'remove'){ const row = addBtn.closest('.bundle-row'); if(row) row.remove(); updateCheckout(); showToast('Removed'); return; }
+          if(txt.includes('add to bundle') || txt === 'quick add'){ // find product in same card
+            const card = addBtn.closest('.card-product'); const gallery = addBtn.closest('.gallery-item');
+            let name = null; if(card) name = card.querySelector('.title')?.textContent; if(gallery) name = gallery.querySelector('img')?.alt;
+            if(name){ const asset = assets.find(a=>a.name===name); if(asset) addBundleItem(asset); return; }
+          }
+          if(txt.includes('add to cart')){ // same behavior for demo
+            const card = addBtn.closest('.card-product'); let name = card?.querySelector('.title')?.textContent; if(name){ const asset = assets.find(a=>a.name===name); if(asset) addBundleItem(asset); showToast('Added to cart'); return; }
+          }
+          if(txt === 'load' || txt === 'delete'){ // ignore, saved list has its own handlers
+            return; }
+        }
+      }, true);
+
+      // keyboard: Enter triggers click on focused actionable elements
+      document.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ const el = document.activeElement; if(el && (el.matches('button') || el.matches('.card-product'))) el.click(); } });
+    }
 
     // home render
     function renderHome(){ const home = $('#tab-home'); home.innerHTML = '';
@@ -301,7 +331,7 @@
       const visual = document.createElement('div'); visual.className='hero-visual'; const visImg = document.createElement('img'); visImg.src = assets[4].src; visImg.alt='Hero'; visual.appendChild(visImg);
       const side = document.createElement('div'); side.className='hero-side';
       const concierge = document.createElement('div'); concierge.className='card-small'; const hcons = document.createElement('h4'); hcons.textContent='AI Concierge'; concierge.appendChild(hcons); const scons = document.createElement('div'); scons.className='muted'; scons.textContent = 'Welcome back — your Focus Score today is 72'; concierge.appendChild(scons);
-      const featured = document.createElement('div'); featured.className='card-small'; const hfeat = document.createElement('h4'); hfeat.textContent='Featured Bundle'; featured.appendChild(hfeat); const sfeat = document.createElement('div'); sfeat.className='muted'; sfeat.textContent = 'Focus & Study Pack — NeuroFocus + Cogniva + NeuroTrainer'; featured.appendChild(sfeat); const btnWrap = document.createElement('div'); btnWrap.className='mt-12'; const of = document.createElement('button'); of.className='btn btn-primary'; of.id='openFeatured'; of.textContent='View Bundle'; btnWrap.appendChild(of); featured.appendChild(btnWrap);
+      const featured = document.createElement('div'); featured.className='card-small'; const hfeat = document.createElement('h4'); hfeat.textContent='Featured Bundle'; featured.appendChild(hfeat); const sfeat = document.createElement('div'); sfeat.className='muted'; sfeat.textContent = 'Focus & Study Pack — NeuroFocus + Cogniva + NeuroTrainer'; featured.appendChild(sfeat); const btnWrap = document.createElement('div'); btnWrap.className='mt-12'; const of = document.createElement('button'); of.className='btn btn-primary'; of.type='button'; of.id='openFeatured'; of.textContent='View Bundle'; btnWrap.appendChild(of); featured.appendChild(btnWrap);
 
       side.appendChild(concierge); side.appendChild(featured);
       hero.appendChild(visual); hero.appendChild(side);
@@ -310,7 +340,7 @@
       const h3 = document.createElement('h3'); h3.className='section-title'; h3.textContent='Top Picks'; home.appendChild(h3);
       const picks = document.createElement('div'); picks.className='catalog-grid'; picks.id='homePicks'; picks.style.gridTemplateColumns='repeat(3,1fr)'; home.appendChild(picks);
 
-      [0,1,5].forEach(i=>{ const a=assets[i]; const c=document.createElement('div'); c.className='card-product'; const img=document.createElement('img'); img.src=a.src; img.className='thumb'; img.alt=a.name; img.style.height='140px'; img.addEventListener('click', ()=> openProductModal(a)); c.appendChild(img); const info=document.createElement('div'); info.className='info'; info.innerHTML=`<div class=\"title\">${a.name}</div><div class=\"meta\"><span class=\"pill\">${a.badge}</span><span class=\"price\">${a.price}</span></div>`; c.appendChild(info); const actions=document.createElement('div'); actions.className='actions'; const btn=document.createElement('button'); btn.className='btn btn-primary'; btn.textContent='Quick Add'; btn.addEventListener('click', (e)=>{ e.stopPropagation(); addBundleItem(a); showToast('Added'); }); actions.appendChild(btn); c.appendChild(actions); picks.appendChild(c); });
+      [0,1,5].forEach(i=>{ const a=assets[i]; const c=document.createElement('div'); c.className='card-product'; const img=document.createElement('img'); img.src=a.src; img.className='thumb'; img.alt=a.name; img.style.height='140px'; img.addEventListener('click', ()=> openProductModal(a)); c.appendChild(img); const info=document.createElement('div'); info.className='info'; info.innerHTML=`<div class=\"title\">${a.name}</div><div class=\"meta\"><span class=\"pill\">${a.badge}</span><span class=\"price\">${a.price}</span></div>`; c.appendChild(info); const actions=document.createElement('div'); actions.className='actions'; const btn=document.createElement('button'); btn.className='btn btn-primary'; btn.type='button'; btn.textContent='Quick Add'; btn.addEventListener('click', (e)=>{ e.stopPropagation(); addBundleItem(a); showToast('Added'); }); actions.appendChild(btn); c.appendChild(actions); picks.appendChild(c); });
 
       $('#openFeatured').addEventListener('click', ()=>{ showPanel('tab-bundles'); showToast('Opened bundle editor'); });
     }
