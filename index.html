@@ -1200,7 +1200,6 @@ body {
       const listId = `list-${idx}`;
       listCard.className = 'product-card-compact';
       listCard.id = listId;
-      listCard.setAttribute('draggable', 'true');
       listCard.setAttribute('data-product', asset.name);
 
       const listImg = document.createElement('img');
@@ -1210,13 +1209,10 @@ body {
       listImg.setAttribute('data-caption', asset.name);
 
       const listMeta = document.createElement('div');
-      listMeta.innerHTML = `<div style="font-weight:700">${asset.name}</div><div style="font-size:12px;color:var(--text-secondary)">Drag to bundle</div>`;
+      listMeta.innerHTML = `<div style="font-weight:700">${asset.name}</div><div style="font-size:12px;color:var(--text-secondary)">Use buttons to add</div>`;
 
       listCard.appendChild(listImg);
       listCard.appendChild(listMeta);
-
-      // dragstart for list items
-      listCard.addEventListener('dragstart', (e)=> e.dataTransfer.setData('text/plain', listId));
 
       productsList.appendChild(listCard);
 
