@@ -829,227 +829,227 @@ body {
   </div>
 </div>
 
-<!-- NeuroBoutique App Overview -->
+<!-- NeuroBoutique App Overview (Tabbed UI) -->
 <section id="neuroboutique-overview" class="overview-wrapper">
   <div class="dashboard-panel overview-panel">
-    <header class="overview-header">
-      <div class="overview-badge">App Overview</div>
-      <h2 class="overview-title">NeuroBoutique – Where Science Meets Luxury</h2>
-      <p class="overview-subtitle">Welcome to NeuroBoutique, your AI-curated brain wellness destination. Explore personalized supplements, gadgets, and bundles designed to enhance focus, memory, mood, sleep, and energy.</p>
-      <div class="concierge-card">
-        <div class="concierge-avatar"><i class="fas fa-robot"></i></div>
-        <div class="concierge-content">
-          <div class="concierge-title">AI Concierge</div>
-          <p class="concierge-text">Welcome, your Focus Score today is <strong>72</strong>. Here are products curated for your peak cognitive performance.</p>
-          <div class="concierge-note">Image Prompt: Futuristic luxury boutique homepage with floating holographic supplements, glowing neural pathways, ambient pastel lighting, interactive AI concierge hologram, cinematic high-resolution style</div>
-        </div>
-      </div>
-    </header>
+    <nav class="nb-nav" role="navigation" aria-label="NeuroBoutique Navigation">
+      <ul class="nb-tabs" role="tablist">
+        <li role="presentation"><button role="tab" aria-selected="true" class="nb-tab" data-target="tab-onboarding">Onboarding</button></li>
+        <li role="presentation"><button role="tab" class="nb-tab" data-target="tab-home">Homepage</button></li>
+        <li role="presentation"><button role="tab" class="nb-tab" data-target="tab-catalog">Catalog</button></li>
+        <li role="presentation"><button role="tab" class="nb-tab" data-target="tab-bundles">Bundles</button></li>
+        <li role="presentation"><button role="tab" class="nb-tab" data-target="tab-vip">VIP</button></li>
+        <li role="presentation"><button role="tab" class="nb-tab" data-target="tab-checkout">Checkout</button></li>
+        <li role="presentation"><button role="tab" class="nb-tab" data-target="tab-dashboard">Dashboard</button></li>
+        <li role="presentation"><button role="tab" class="nb-tab" data-target="tab-gallery">Gallery</button></li>
+      </ul>
+    </nav>
 
-    <div class="overview-grid">
-      <details class="blueprint-section" open>
-        <summary class="section-summary">Navigation Menu</summary>
-        <div class="blueprint-content">
-          <ul class="bullet-list">
-            <li><strong>Sections:</strong> Home, Catalog, Bundles, Offers, VIP Membership, Brain Dashboard, Checkout</li>
-            <li><strong>Filters:</strong> Cognitive goal (Memory, Focus, Sleep, Mood, Energy), Product type (Supplement, Gadget, Drink, Snack), Personalized AI score, Discounts</li>
-            <li><strong>Search Bar:</strong> Real-time AI suggestions with glowing neural preview animations</li>
-            <li><strong>Image Prompt:</strong> Interactive futuristic catalog with neural-powered filter interface, glowing search results, holographic boutique style, high-resolution</li>
-          </ul>
+    <div class="nb-panels">
+      <section id="tab-onboarding" class="nb-panel" role="tabpanel">
+        <h3 class="panel-title">Quick Onboarding</h3>
+        <p class="panel-desc">Step-by-step preference setup to create your cognitive baseline. No prompts shown — images are mapped to products in Catalog and Gallery.</p>
+        <div class="onboarding-cards">
+          <div class="card small-card">
+            <h4>Baseline Survey</h4>
+            <p>Answer quick questions about sleep, stress, and goals to get personalized recommendations.</p>
+          </div>
+          <div class="card small-card">
+            <h4>Neural Avatar</h4>
+            <p>A holographic avatar will represent your profile and progress.</p>
+          </div>
         </div>
-      </details>
+      </section>
 
-      <details class="blueprint-section">
-        <summary class="section-summary">Smart Catalog</summary>
-        <div class="blueprint-content">
-          <ul class="bullet-list">
-            <li><strong>Sections:</strong> Memory &amp; Focus, Stress &amp; Mood, Sleep &amp; Recovery, Energy &amp; Motivation, Brain Gadgets &amp; Tools</li>
-            <li><strong>Features:</strong> Hover effect shows glowing neural connections to brain regions; 3D holographic product previews; AI badges: Best for Your Memory, Focus Booster Recommended, Sleep Enhancer for Tonight</li>
-            <li><strong>Image Prompt:</strong> Futuristic online boutique catalog with glowing neural product highlights, interactive 3D holographic supplements, luxury pastel ambient lighting, high-resolution</li>
-          </ul>
+      <section id="tab-home" class="nb-panel" role="tabpanel" hidden>
+        <h3 class="panel-title">Homepage Preview</h3>
+        <div class="home-hero">
+          <img src="https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F7fb880f9595f4788814750baca13374d?format=webp&width=1200" alt="NeuroBoutique Hero" class="hero-image">
+          <div class="hero-overlay">
+            <h4>Welcome — personalized picks ready</h4>
+            <p>Your Focus Score today is <strong>72</strong></p>
+          </div>
         </div>
-      </details>
+      </section>
 
-      <details class="blueprint-section">
-        <summary class="section-summary">Product Details Examples</summary>
-        <div class="blueprint-content">
-          <ul class="bullet-list">
-            <li><strong>NeuroFocus Capsules</strong> — Premium nootropic capsules for mental clarity, enhanced focus, and accelerated learning. Contains Bacopa Monnieri, Lion’s Mane Mushroom, and L-Theanine. <em>Functions:</em> Improves short-term memory, reduces mental fatigue, balances neurotransmitters for sharper focus. <em>Image Prompt:</em> Sleek futuristic glass bottle labeled NeuroFocus, glowing softly with neural network patterns in background, luxury boutique-style, ultra high-resolution.</li>
-            <li><strong>Cogniva Gummies</strong> — Chewable brain vitamins enriched with Vitamin B12, Omega-3 DHA, and Ginkgo Biloba. <em>Functions:</em> Enhances recall, alertness, and mental stamina. <em>Image Prompt:</em> Clear jar of colorful chewable brain gummies labeled Cogniva, surrounded by floating pastel neural wave patterns, luxury boutique photography.</li>
-          </ul>
+      <section id="tab-catalog" class="nb-panel" role="tabpanel" hidden>
+        <h3 class="panel-title">Catalog</h3>
+        <div class="catalog-grid" id="catalogGrid">
+          <!-- Product cards populated by JS using provided images -->
         </div>
-      </details>
+      </section>
 
-      <details class="blueprint-section">
-        <summary class="section-summary">Bundles &amp; Dynamic Stacks</summary>
-        <div class="blueprint-content">
-          <ul class="bullet-list">
-            <li><strong>Focus &amp; Study Bundle:</strong> NeuroFocus Capsules, Cogniva Gummies, NeuroTrainer Handheld</li>
-            <li><strong>Calm &amp; Sleep Pack:</strong> CalmNeuro Drops, MindEase Aromatherapy Kit, NeuroSleep Capsules</li>
-            <li><strong>Daily Brain Boost Kit:</strong> NeuroCharge Drink Mix, HappyMind Chews, NeuroTrainer Handheld</li>
-            <li><strong>Features:</strong> Custom AI bundles show predicted cognitive improvement; products connected with glowing neural charts; dynamic bundle modification with instant AI recalculation</li>
-            <li><strong>Image Prompt:</strong> Interactive neural bundle dashboard with glowing connections between products, predicted cognitive benefits displayed in holographic chart, luxury boutique style, high-resolution</li>
-          </ul>
+      <section id="tab-bundles" class="nb-panel" role="tabpanel" hidden>
+        <h3 class="panel-title">Bundle Creator</h3>
+        <div class="bundles-area">
+          <div class="products-list" id="draggableProducts">
+            <!-- Draggable product items inserted by JS -->
+          </div>
+          <div class="bundle-dropzone" id="bundleDropzone" aria-label="Drop products to create bundle">
+            <h4>Your Bundle</h4>
+            <div id="bundleContents" class="bundle-contents">(drop products here)</div>
+            <button id="optimizeBundle" class="submit-button">Auto-optimize bundle</button>
+          </div>
         </div>
-      </details>
+      </section>
 
-      <details class="blueprint-section">
-        <summary class="section-summary">AI-Powered Recommendations</summary>
-        <div class="blueprint-content">
-          <ul class="bullet-list">
-            <li><strong>Real-time suggestions</strong> based on brain profile</li>
-            <li><strong>Examples:</strong> Focus is low → NeuroFocus Capsules; Memory could improve → add Cogniva Gummies; Stress high → MindEase Kit</li>
-            <li><strong>Visuals:</strong> Products glow with intensity based on relevance</li>
-            <li><strong>Image Prompt:</strong> Interactive product catalog with glowing AI recommendation badges, neural pathways connecting products to virtual brain regions, futuristic luxury boutique style, high-resolution</li>
-          </ul>
+      <section id="tab-vip" class="nb-panel" role="tabpanel" hidden>
+        <h3 class="panel-title">VIP Membership</h3>
+        <div class="vip-grid">
+          <div class="vip-card"><h4>Bronze</h4><p>Basic perks & neural points</p></div>
+          <div class="vip-card"><h4>Silver</h4><p>Early access & small discounts</p></div>
+          <div class="vip-card"><h4>Gold</h4><p>Premium bundles & priority support</p></div>
         </div>
-      </details>
+      </section>
 
-      <details class="blueprint-section">
-        <summary class="section-summary">Discounts &amp; Offers</summary>
-        <div class="blueprint-content">
-          <ul class="bullet-list">
-            <li><strong>Personalized Offers:</strong> User-specific discounts (10% off NeuroSleep Capsules), AI-approved bundles (Save 15% on Focus + Memory Stack), seasonal promotions</li>
-            <li><strong>Flash Deals:</strong> Time-limited holographic banners, animated countdown timers</li>
-            <li><strong>Image Prompt:</strong> Futuristic boutique product display with glowing holographic discount tags, animated countdown timers, neural pathways linking products to cognitive goals, high-resolution</li>
-          </ul>
+      <section id="tab-checkout" class="nb-panel" role="tabpanel" hidden>
+        <h3 class="panel-title">Checkout</h3>
+        <div class="checkout-summary" id="checkoutSummary">
+          <p>No items in cart.</p>
         </div>
-      </details>
+      </section>
 
-      <details class="blueprint-section">
-        <summary class="section-summary">Loyalty &amp; Rewards</summary>
-        <div class="blueprint-content">
-          <ul class="bullet-list">
-            <li><strong>Neural Points:</strong> Earn points for purchases, cognitive challenges, daily check-ins</li>
-            <li><strong>VIP Membership:</strong> Bronze, Silver, Gold tiers unlock early access, premium bundles, extra discounts, personalized recommendations</li>
-            <li><strong>Image Prompt:</strong> Luxury futuristic dashboard showing reward points, glowing neural badges, exclusive tiered membership perks, boutique high-resolution aesthetic</li>
-          </ul>
+      <section id="tab-dashboard" class="nb-panel" role="tabpanel" hidden>
+        <h3 class="panel-title">Mini Dashboard</h3>
+        <div class="chart-wrap">
+          <canvas id="miniChart" style="height:220px;"></canvas>
         </div>
-      </details>
+      </section>
 
-      <details class="blueprint-section">
-        <summary class="section-summary">Interactive Checkout</summary>
-        <div class="blueprint-content">
-          <ul class="bullet-list">
-            <li>Shows predicted cognitive improvement for each item</li>
-            <li>Total brain wellness score dynamically calculated</li>
-            <li>Products visually connected to affected brain regions with glowing neural paths</li>
-            <li><strong>Image Prompt:</strong> Luxury futuristic checkout page with holographic brain wellness summary, glowing neural pathways connecting products to brain regions, high-resolution boutique design</li>
-          </ul>
+      <section id="tab-gallery" class="nb-panel" role="tabpanel" hidden>
+        <h3 class="panel-title">Gallery</h3>
+        <div class="gallery-grid" id="galleryGrid">
+          <!-- Gallery images populated by JS (no prompts displayed) -->
         </div>
-      </details>
-
-      <details class="blueprint-section">
-        <summary class="section-summary">Brain Dashboard / Gamification</summary>
-        <div class="blueprint-content">
-          <ul class="bullet-list">
-            <li>Tracks mood, sleep, focus, memory, and energy</li>
-            <li>Visualizes cognitive improvements based on supplement use</li>
-            <li>Gamified challenges with glowing neural pathways and progress bars</li>
-            <li><strong>Image Prompt:</strong> 3D glowing neural network representing cognitive achievements, futuristic interactive dashboard, luxury boutique style, cinematic high-resolution</li>
-          </ul>
-        </div>
-      </details>
-
-      <details class="blueprint-section">
-        <summary class="section-summary">Seasonal &amp; Special Offers</summary>
-        <div class="blueprint-content">
-          <ul class="bullet-list">
-            <li>Limited edition bundles (Summer Focus Pack, Winter Relaxation Pack)</li>
-            <li>Event-based promotions (Cognitive Week, Brain Health Month)</li>
-            <li>Animated holographic banners with glowing neural effects</li>
-            <li><strong>Image Prompt:</strong> Futuristic boutique seasonal display with glowing neural banners, animated limited-time offer holograms, luxury pastel lighting, high-resolution</li>
-          </ul>
-        </div>
-      </details>
-
-      <details class="blueprint-section">
-        <summary class="section-summary">Advanced Features</summary>
-        <div class="blueprint-content">
-          <ul class="bullet-list">
-            <li>Personalized AI alerts and push notifications with glowing holographic badges</li>
-            <li>Drag-and-drop custom bundle creation with instant cognitive prediction</li>
-            <li>Interactive 3D product inspection showing real-time neural activation</li>
-            <li>Holographic demonstration of predicted brain improvement per product or bundle</li>
-            <li>Seamless AR/VR compatibility for immersive luxury experience</li>
-          </ul>
-        </div>
-      </details>
-
-      <details class="blueprint-section">
-        <summary class="section-summary">Marketing Copy Examples</summary>
-        <div class="blueprint-content">
-          <ul class="bullet-list">
-            <li><strong>Memory &amp; Focus:</strong> Supercharge your mind. Watch neurons fire in real-time as cognitive potential unfolds.</li>
-            <li><strong>Stress &amp; Mood:</strong> CalmNeuro Drops and MindEase Kits soothe your mind and elevate your mood with glowing neural visuals.</li>
-            <li><strong>Sleep &amp; Recovery:</strong> NeuroSleep Capsules and SleepSync Eye Mask guide you to restorative sleep, optimizing memory consolidation.</li>
-            <li><strong>Energy &amp; Motivation:</strong> NeuroCharge Drinks and HappyMind Chews ignite energy centers, enhancing focus, motivation, and mood.</li>
-            <li><strong>Brain Gadgets:</strong> MindWave Headbands and NeuroTrainer devices transform your cognitive routine into a gamified interactive experience.</li>
-          </ul>
-        </div>
-      </details>
+      </section>
     </div>
 
-    <div class="overview-gallery-wrapper">
-  <h3 class="gallery-title">Selected Product & Marketing Images</h3>
-  <div class="overview-gallery">
-    <figure class="product-card">
-      <img class="product-image" src="https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F61b6699083b34293aac0e6ff0267b26a?format=webp&width=800" alt="MindWave EEG Headband">
-      <figcaption class="product-caption"><strong>MindWave EEG Headband</strong><span class="caption-prompt">EEG headband with holographic brainwave overlay</span></figcaption>
-    </figure>
+    <div id="nb-lightbox" class="nb-lightbox" hidden>
+      <button id="lightboxClose" class="lightbox-close">×</button>
+      <img id="lightboxImg" src="" alt="" />
+      <div id="lightboxCaption" class="lightbox-caption"></div>
+    </div>
 
-    <figure class="product-card">
-      <img class="product-image" src="https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Fc61d61cbdc2f405f99b9d79b48c16fc6?format=webp&width=800" alt="NeuroTrainer Handheld">
-      <figcaption class="product-caption"><strong>NeuroTrainer Handheld</strong><span class="caption-prompt">High-tech handheld brain training device</span></figcaption>
-    </figure>
-
-    <figure class="product-card">
-      <img class="product-image" src="https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Fc9009bd9b8764f019b3b86d3b478d179?format=webp&width=800" alt="CalmNeuro Drops">
-      <figcaption class="product-caption"><strong>CalmNeuro Drops</strong><span class="caption-prompt">Golden dropper bottle with calming neural visuals</span></figcaption>
-    </figure>
-
-    <figure class="product-card">
-      <img class="product-image" src="https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Fe2bb698a8cfe47c3a63095428a7fdfc5?format=webp&width=800" alt="NeuroFocus Capsules">
-      <figcaption class="product-caption"><strong>NeuroFocus Capsules</strong><span class="caption-prompt">Sleek glass bottle with neural pulse background</span></figcaption>
-    </figure>
-
-    <figure class="product-card">
-      <img class="product-image" src="https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Ffb686dbb87ef42a1a65a919e3343bd40?format=webp&width=800" alt="Cogniva Gummies">
-      <figcaption class="product-caption"><strong>Cogniva Gummies</strong><span class="caption-prompt">Colorful chewable gummies with pastel neural waves</span></figcaption>
-    </figure>
-
-    <figure class="product-card">
-      <img class="product-image" src="https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Fbeff0cc4a9714d7180e74e20d3afb9b1?format=webp&width=800" alt="NeuroCharge Drink & Catalog">
-      <figcaption class="product-caption"><strong>NeuroCharge & Catalog</strong><span class="caption-prompt">Digital app dashboard & product hero visuals</span></figcaption>
-    </figure>
-
-    <figure class="product-card">
-      <img class="product-image" src="https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F0ed249dfdd4a43f6ab132069e91b043d?format=webp&width=800" alt="HappyMind Chews">
-      <figcaption class="product-caption"><strong>HappyMind Chews</strong><span class="caption-prompt">Colorful mood supplement shot with warm pastel lighting</span></figcaption>
-    </figure>
-
-    <figure class="product-card">
-      <img class="product-image" src="https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F12a2d77e74bf4846a75689f132cb0cb3?format=webp&width=800" alt="SleepSync Eye Mask">
-      <figcaption class="product-caption"><strong>SleepSync Eye Mask</strong><span class="caption-prompt">Futuristic eye mask with holographic glow</span></figcaption>
-    </figure>
-  </div>
-
-  <style>
-    .overview-gallery-wrapper { margin-top: 18px; }
-    .gallery-title { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; }
-    .overview-gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    .product-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
-    .product-image { width: 100%; height: 140px; object-fit: cover; border-radius: 8px; box-shadow: var(--shadow); }
-    .product-caption { font-size: 13px; color: var(--text-primary); text-align: center; display: grid; gap: 4px; }
-    .product-caption .caption-prompt { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
-    @media (max-width: 1024px) { .overview-gallery { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 600px) { .overview-gallery { grid-template-columns: 1fr; } .product-image { height: 200px; } }
-  </style>
-</div>
-
-<footer class="overview-footer">✅ Outcome: This text-based app overview acts like a full blueprint for a futuristic NeuroBoutique shop app: catalog, bundles, AI recommendations, discounts, loyalty systems, checkout, gamified brain dashboard, and all image prompts for high-end marketing visuals.</footer>
   </div>
 </section>
+
+<style>
+  /* Tabs and panels */
+  .nb-nav { margin-bottom: 12px; }
+  .nb-tabs { display:flex; gap:8px; list-style:none; padding:0; margin:0; flex-wrap:wrap; }
+  .nb-tab { background:var(--bg-secondary); border:1px solid var(--border-color); padding:8px 12px; border-radius:8px; cursor:pointer; color:var(--text-primary); }
+  .nb-tab[aria-selected="true"] { background:linear-gradient(135deg,var(--primary-color),var(--secondary-color)); color:#fff; border-color:transparent; }
+  .nb-panels { margin-top:10px; }
+  .nb-panel { padding:14px; background:var(--bg-secondary); border-radius:12px; border:1px solid var(--border-color); }
+  .panel-title { margin-bottom:8px; }
+  .home-hero { position:relative; border-radius:12px; overflow:hidden; }
+  .hero-image { width:100%; height:200px; object-fit:cover; filter:contrast(1.02); }
+  .hero-overlay { position:absolute; left:20px; bottom:20px; color:#fff; text-shadow:0 4px 12px rgba(0,0,0,0.4); }
+  .catalog-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .product-card-compact { background:var(--bg-primary); padding:10px; border-radius:10px; border:1px solid var(--border-color); display:flex; gap:10px; align-items:center; }
+  .product-thumb { width:72px; height:72px; object-fit:cover; border-radius:8px; }
+  .bundles-area { display:flex; gap:12px; }
+  .products-list { flex:1; max-height:320px; overflow:auto; display:grid; gap:8px; }
+  .bundle-dropzone { width:320px; background:var(--bg-primary); padding:12px; border-radius:10px; border:2px dashed var(--border-color); display:flex; flex-direction:column; gap:8px; align-items:center; }
+  .bundle-contents { width:100%; min-height:120px; background:var(--bg-secondary); border-radius:8px; padding:8px; }
+  .vip-grid { display:flex; gap:12px; }
+  .vip-card { background:var(--bg-primary); padding:12px; border-radius:8px; flex:1; text-align:center; }
+  .gallery-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .gallery-item img { width:100%; height:140px; object-fit:cover; border-radius:8px; cursor:pointer; }
+  .nb-lightbox { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); z-index:2000; }
+  .lightbox-close { position:absolute; top:24px; right:24px; background:transparent; color:#fff; border:none; font-size:28px; cursor:pointer; }
+  .lightbox-caption { color:#fff; margin-top:8px; text-align:center; }
+  @media (max-width:1024px) { .catalog-grid { grid-template-columns:repeat(2,1fr); } .gallery-grid { grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:600px) { .catalog-grid { grid-template-columns:1fr; } .gallery-grid { grid-template-columns:1fr; } .bundle-dropzone { width:100%; } .nb-tabs { overflow:auto; }
+}
+</style>
+
+<script>
+// Tab switching with keyboard support
+(function(){
+  const tabs = document.querySelectorAll('.nb-tab');
+  const panels = document.querySelectorAll('.nb-panel');
+  function activateTab(targetId){
+    tabs.forEach(t=>{ t.setAttribute('aria-selected','false'); });
+    panels.forEach(p=> p.hidden = true);
+    const activeBtn = document.querySelector(`.nb-tab[data-target="${targetId}"]`);
+    if(activeBtn){ activeBtn.setAttribute('aria-selected','true'); }
+    const activePanel = document.getElementById(targetId);
+    if(activePanel) activePanel.hidden = false;
+  }
+  tabs.forEach(tab => tab.addEventListener('click', ()=> activateTab(tab.dataset.target)));
+  // initial
+  activateTab('tab-onboarding');
+
+  // Lightbox
+  const lightbox = document.getElementById('nb-lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxCaption = document.getElementById('lightboxCaption');
+  document.addEventListener('click', (e)=>{
+    const img = e.target.closest('.gallery-item img, .product-thumb');
+    if(img){
+      lightboxImg.src = img.src;
+      lightboxImg.alt = img.alt || '';
+      lightboxCaption.textContent = img.getAttribute('data-caption') || img.alt || '';
+      lightbox.hidden = false;
+    }
+  });
+  document.getElementById('lightboxClose').addEventListener('click', ()=> lightbox.hidden = true);
+
+  // Drag & drop bundle skeleton
+  const productsList = document.getElementById('draggableProducts');
+  const bundleDropzone = document.getElementById('bundleDropzone');
+  const bundleContents = document.getElementById('bundleContents');
+  function allowDrop(ev){ ev.preventDefault(); }
+  function onDrop(ev){ ev.preventDefault(); const id = ev.dataTransfer.getData('text/plain'); const el = document.getElementById(id); if(el){ const clone = el.cloneNode(true); clone.id = id + '-copy-' + Date.now(); clone.draggable = false; bundleContents.appendChild(clone); updateCheckout(); } }
+  bundleDropzone.addEventListener('dragover', allowDrop);
+  bundleDropzone.addEventListener('drop', onDrop);
+
+  function updateCheckout(){ const items = Array.from(bundleContents.children); const summary = document.getElementById('checkoutSummary'); if(summary){ if(items.length===0) summary.innerHTML = '<p>No items in cart.</p>'; else summary.innerHTML = '<ul>' + items.map(i=>`<li>${i.getAttribute('data-product') || i.textContent.trim()}</li>`).join('') + '</ul>'; }
+  }
+
+  // Populate catalog and gallery using provided images mapped to products
+  const assets = [
+    {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Fe2bb698a8cfe47c3a63095428a7fdfc5?format=webp&width=800', name:'NeuroFocus Capsules'},
+    {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Ffb686dbb87ef42a1a65a919e3343bd40?format=webp&width=800', name:'Cogniva Gummies'},
+    {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Fc9009bd9b8764f019b3b86d3b478d179?format=webp&width=800', name:'CalmNeuro Drops'},
+    {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Fc61d61cbdc2f405f99b9d79b48c16fc6?format=webp&width=800', name:'NeuroTrainer Handheld'},
+    {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F61b6699083b34293aac0e6ff0267b26a?format=webp&width=800', name:'MindWave EEG Headband'},
+    {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Fbeff0cc4a9714d7180e74e20d3afb9b1?format=webp&width=800', name:'NeuroCharge'},
+    {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F0ed249dfdd4a43f6ab132069e91b043d?format=webp&width=800', name:'HappyMind Chews'},
+    {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F12a2d77e74bf4846a75689f132cb0cb3?format=webp&width=800', name:'SleepSync Eye Mask'}
+  ];
+
+  const catalogGrid = document.getElementById('catalogGrid');
+  const galleryGrid = document.getElementById('galleryGrid');
+
+  assets.forEach((asset, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'product-card-compact';
+    card.id = 'prod-'+idx;
+    card.setAttribute('draggable','true');
+    card.setAttribute('data-product', asset.name);
+    card.addEventListener('dragstart', (e)=> e.dataTransfer.setData('text/plain', card.id));
+
+    const img = document.createElement('img'); img.src = asset.src; img.className='product-thumb'; img.alt = asset.name; img.setAttribute('data-caption', asset.name);
+    const meta = document.createElement('div'); meta.innerHTML = `<div style="font-weight:700">${asset.name}</div><div style="font-size:12px;color:var(--text-secondary)">Shop product</div>`;
+    card.appendChild(img); card.appendChild(meta);
+    if(catalogGrid) catalogGrid.appendChild(card);
+    if(productsList) productsList.appendChild(card.cloneNode(true));
+
+    const gitem = document.createElement('figure'); gitem.className='gallery-item'; const gimg = document.createElement('img'); gimg.src = asset.src; gimg.alt = asset.name; gimg.setAttribute('data-caption', asset.name); gitem.appendChild(gimg);
+    const gcap = document.createElement('figcaption'); gcap.textContent = asset.name; gitem.appendChild(gcap);
+    if(galleryGrid) galleryGrid.appendChild(gitem);
+  });
+
+  // Mini chart sample
+  try{
+    const ctx = document.getElementById('miniChart').getContext('2d');
+    new Chart(ctx,{ type:'line', data:{ labels:['Mon','Tue','Wed','Thu','Fri'], datasets:[{ label:'Score', data:[65,70,72,68,73], borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,0.08)', fill:true }] }, options:{ responsive:true, maintainAspectRatio:false } });
+  }catch(e){console.warn('mini chart init failed',e)}
+
+})();
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
