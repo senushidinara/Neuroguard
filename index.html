@@ -2252,5 +2252,115 @@ document.addEventListener('DOMContentLoaded', function(){
   }catch(err){ console.error('direct nav init failed', err); }
 })();
 </script>
+<script>
+(function(){
+  // Simplified, robust UI initializer to fix navigation and buttons
+  const assets = [
+    {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F6ba10c6d85a449ec8e287fbed938ad9b?format=webp&width=800', name:'NeuroFocus Capsules', price:'$39.99', badge:'Focus'},
+    {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F85d98986702e4713ba10b54c8b32238c?format=webp&width=800', name:'Cogniva Gummies', price:'$24.99', badge:'Memory'},
+    {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F0165df738dd84e17bab62c3e73422299?format=webp&width=800', name:'CalmNeuro Drops', price:'$29.99', badge:'Calm'},
+    {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F7f04e73f8d8f4695934c92e39f5937a7?format=webp&width=800', name:'NeuroTrainer Handheld', price:'$149.00', badge:'Gadget'},
+    {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2Faba059cdda1d4bd4a9f6b6765c035067?format=webp&width=800', name:'MindWave EEG Headband', price:'$199.00', badge:'Device'},
+    {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F3c591978967249828994e115de103c7a?format=webp&width=800', name:'NeuroCharge', price:'$19.99', badge:'Energy'},
+    {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F02ef19c1089e47b1986055bc021f9ae1?format=webp&width=800', name:'HappyMind Chews', price:'$14.99', badge:'Mood'},
+    {src:'https://cdn.builder.io/api/v1/image/assets%2Fdc3782de61224ee6afee73d63ac0f50c%2F847d6f182939444c8f4c46a0c4e3cc3a?format=webp&width=800', name:'SleepSync Eye Mask', price:'$34.99', badge:'Sleep'}
+  ];
+
+  function showToast(msg, timeout=1800){
+    try{
+      let c = document.getElementById('nb-toast-container');
+      if(!c){ c = document.createElement('div'); c.id='nb-toast-container'; c.style.position='fixed'; c.style.right='20px'; c.style.bottom='20px'; c.style.zIndex='9999'; document.body.appendChild(c); }
+      const t = document.createElement('div'); t.textContent = msg; t.style.background='rgba(0,0,0,0.8)'; t.style.color='#fff'; t.style.padding='8px 12px'; t.style.borderRadius='8px'; t.style.marginTop='8px'; c.appendChild(t);
+      setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, timeout);
+    }catch(e){ console.warn(e); }
+  }
+
+  function showPanel(id){
+    const panels = document.querySelectorAll('.nb-panel');
+    panels.forEach(p=> p.hidden = p.id !== id);
+    // update nav active states
+    document.querySelectorAll('.nb-tab').forEach(t=> t.classList.toggle('active', t.getAttribute('data-target')===id));
+    document.querySelectorAll('.nb-tab').forEach(t=> t.setAttribute('aria-selected', t.getAttribute('data-target')===id?'true':'false'));
+    document.querySelectorAll('.site-menu a').forEach(a=> a.classList.toggle('active', a.getAttribute('data-target')===id));
+  }
+
+  // wire header and tab buttons
+  document.querySelectorAll('.site-menu a[data-target], .nb-tab[data-target]').forEach(el=>{
+    el.addEventListener('click', function(e){
+      e.preventDefault(); e.stopPropagation();
+      const target = el.getAttribute('data-target'); if(target) { showPanel(target); showToast('Opened ' + target); }
+    }, {capture:true});
+  });
+
+  // ensure Home visible by default
+  showPanel('tab-home');
+
+  // populate catalog and gallery reliably
+  const catalogGrid = document.getElementById('catalogGrid');
+  const galleryGrid = document.getElementById('galleryGrid');
+  const bundleContents = document.getElementById('bundleContents');
+  const savedList = document.getElementById('savedBundlesList');
+  const checkoutSummary = document.getElementById('checkoutSummary');
+
+  function updateCheckout(){
+    const items = Array.from(bundleContents.querySelectorAll('.bundle-item')).map(i=>i.getAttribute('data-product'));
+    if(!checkoutSummary) return;
+    checkoutSummary.innerHTML = items.length ? ('<ul>' + items.map(x=>'<li>'+x+'</li>').join('') + '</ul>') : '<p>No items in cart.</p>';
+  }
+
+  function addToBundleByAsset(a){
+    const item = document.createElement('div'); item.className='bundle-item'; item.setAttribute('data-product', a.name);
+    const img = document.createElement('img'); img.src=a.src; img.style.width='48px'; img.style.height='48px'; img.style.objectFit='cover'; img.style.borderRadius='6px';
+    const label = document.createElement('div'); label.style.flex='1'; label.style.margin='0 8px'; label.textContent = a.name;
+    const btn = document.createElement('button'); btn.className='export-button'; btn.textContent='Remove'; btn.addEventListener('click', ()=>{ item.remove(); updateCheckout(); showToast('Removed'); });
+    item.appendChild(img); item.appendChild(label); item.appendChild(btn);
+    bundleContents.appendChild(item); updateCheckout();
+  }
+
+  function createCatalog(){
+    if(!catalogGrid) return;
+    catalogGrid.innerHTML='';
+    assets.forEach(a=>{
+      const card = document.createElement('div'); card.className='boutique-card';
+      const img = document.createElement('img'); img.src=a.src; img.className='product-thumb'; img.alt=a.name; img.style.width='120px'; img.style.height='120px'; img.style.objectFit='cover'; img.style.borderRadius='8px';
+      const info = document.createElement('div'); info.className='product-info'; info.innerHTML = `<div class="product-title">${a.name}</div><div class="product-meta"><span class="product-badge">${a.badge}</span><span class="product-price">${a.price}</span></div>`;
+      const actions = document.createElement('div'); actions.className='product-actions';
+      const addBundle = document.createElement('button'); addBundle.className='export-button'; addBundle.textContent='Add to Bundle'; addBundle.addEventListener('click', ()=>{ addToBundleByAsset(a); showToast('Added to bundle'); });
+      const addCart = document.createElement('button'); addCart.className='submit-button'; addCart.textContent='Add to Cart'; addCart.addEventListener('click', ()=>{ addToBundleByAsset(a); showToast('Added to cart'); });
+      actions.appendChild(addBundle); actions.appendChild(addCart);
+      card.appendChild(img); card.appendChild(info); card.appendChild(actions);
+      catalogGrid.appendChild(card);
+      // gallery
+      if(galleryGrid){ const g = document.createElement('figure'); g.className='gallery-item'; const gi = document.createElement('img'); gi.src=a.src; gi.alt=a.name; gi.setAttribute('data-caption', a.name); gi.style.cursor='pointer'; g.appendChild(gi); const cap=document.createElement('figcaption'); cap.textContent=a.name; g.appendChild(cap); galleryGrid.appendChild(g); gi.addEventListener('click', ()=>{ const lightbox=document.getElementById('nb-lightbox'); const lbimg=document.getElementById('lightboxImg'); const caption=document.getElementById('lightboxCaption'); lbimg.src=a.src; caption.textContent=a.name; lightbox.hidden=false; }); }
+    });
+  }
+
+  function renderSaved(){ if(!savedList) return; savedList.innerHTML=''; const s=JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]'); s.forEach((b, i)=>{ const el=document.createElement('div'); el.className='product-card-compact'; el.style.justifyContent='space-between'; el.innerHTML = `<div><strong>${b.name}</strong><div style="font-size:12px;color:var(--text-secondary)">${b.items.join(', ')}</div></div><div style="display:flex;gap:6px"><button class="export-button" data-load="${i}">Load</button><button class="export-button" data-delete="${i}">Delete</button></div>`; savedList.appendChild(el); el.querySelector('[data-load]').addEventListener('click', ()=>{ bundleContents.innerHTML=''; b.items.forEach(name=>{ const found = assets.find(x=>x.name===name); if(found) addToBundleByAsset(found); }); updateCheckout(); showToast('Loaded bundle'); }); el.querySelector('[data-delete]').addEventListener('click', ()=>{ s.splice(i,1); localStorage.setItem('nb_saved_bundles', JSON.stringify(s)); renderSaved(); showToast('Deleted'); }); }); }
+
+  // Wire saved bundle controls
+  document.getElementById('optimizeBundle') && document.getElementById('optimizeBundle').addEventListener('click', ()=>{ // simple sort by name
+    const items = Array.from(bundleContents.querySelectorAll('.bundle-item')); items.sort((a,b)=> a.getAttribute('data-product').localeCompare(b.getAttribute('data-product'))); bundleContents.innerHTML=''; items.forEach(i=> bundleContents.appendChild(i)); updateCheckout(); showToast('Bundle optimized');
+  });
+  document.getElementById('saveBundle') && document.getElementById('saveBundle').addEventListener('click', ()=>{
+    const items = Array.from(bundleContents.querySelectorAll('.bundle-item')).map(i=>i.getAttribute('data-product'));
+    if(!items.length){ showToast('No items to save'); return; }
+    const name = prompt('Bundle name','My Bundle'); if(!name) return; const saved = JSON.parse(localStorage.getItem('nb_saved_bundles')||'[]'); saved.push({name, items}); localStorage.setItem('nb_saved_bundles', JSON.stringify(saved)); renderSaved(); showToast('Saved bundle');
+  });
+
+  document.getElementById('arPreview') && document.getElementById('arPreview').addEventListener('click', ()=>{
+    const arr = Array.from(bundleContents.querySelectorAll('.bundle-item img')).map(i=>i.src);
+    const preview = document.getElementById('arPreviewContent'); preview.innerHTML=''; if(!arr.length){ preview.textContent='No items to preview'; } else { arr.forEach(u=>{ const im=document.createElement('img'); im.src=u; im.style.width='80px'; im.style.height='80px'; im.style.objectFit='cover'; im.style.borderRadius='6px'; preview.appendChild(im); }); }
+    document.getElementById('ar-modal').hidden=false;
+  });
+  document.getElementById('arClose') && document.getElementById('arClose').addEventListener('click', ()=> document.getElementById('ar-modal').hidden=true);
+
+  // wire lightbox close/prev/next keyboard
+  document.getElementById('lightboxClose') && document.getElementById('lightboxClose').addEventListener('click', ()=> document.getElementById('nb-lightbox').hidden=true);
+  document.addEventListener('keydown', (e)=>{ const lb=document.getElementById('nb-lightbox'); if(lb && !lb.hidden && e.key==='Escape') lb.hidden=true; });
+
+  // init
+  createCatalog(); renderSaved(); updateCheckout();
+})();
+</script>
 </body>
 </html>
