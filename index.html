@@ -1020,15 +1020,29 @@ body {
 (function(){
   const tabs = document.querySelectorAll('.nb-tab');
   const panels = document.querySelectorAll('.nb-panel');
+  const siteLinks = document.querySelectorAll('.site-menu a[data-target]');
+
   function activateTab(targetId){
-    tabs.forEach(t=>{ t.setAttribute('aria-selected','false'); });
-    panels.forEach(p=> p.hidden = true);
-    const activeBtn = document.querySelector(`.nb-tab[data-target="${targetId}"]`);
-    if(activeBtn){ activeBtn.setAttribute('aria-selected','true'); }
+    // update tab buttons
+    tabs.forEach(t=>{
+      const isActive = t.dataset.target === targetId;
+      t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      t.classList.toggle('active', isActive);
+    });
+
+    // show/hide panels
+    panels.forEach(p=> p.hidden = (p.id !== targetId));
+
+    // update top nav active state
+    siteLinks.forEach(l=> l.classList.toggle('active', l.getAttribute('data-target') === targetId));
+
+    // smooth scroll to panel for better UX
     const activePanel = document.getElementById(targetId);
-    if(activePanel) activePanel.hidden = false;
+    if(activePanel) activePanel.scrollIntoView({behavior:'smooth', block:'start'});
   }
+
   tabs.forEach(tab => tab.addEventListener('click', ()=> activateTab(tab.dataset.target)));
+  siteLinks.forEach(link => link.addEventListener('click', (e)=>{ e.preventDefault(); activateTab(link.getAttribute('data-target')); }));
 
   // Wire top site nav (if present) to tabs and expose activateTab globally
   window.activateTab = activateTab;
